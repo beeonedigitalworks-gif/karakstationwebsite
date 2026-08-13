@@ -4,6 +4,8 @@
     <script src="../js/supabase-config.js"></script>
     <script src="../js/supabase-client.js"></script>
     <script src="../js/karak-data.js"></script>
+    <script src="../js/karak-data.js"></script>
+    <script src="../js/supabase-sync.js"></script>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -973,14 +975,24 @@
             // Note: data is preserved on page refresh. Logout now occurs only by inactivity or explicit sign-out.
         })();
 
-        // Supabase is the source of truth. Do not load menu data from localStorage.
-        categories = [];
-        foods = [];
+        try {
+            const adminMenu = JSON.parse(localStorage.getItem('adminMenu') || 'null');
+            if (adminMenu && Array.isArray(adminMenu.categories) && Array.isArray(adminMenu.foods)) {
+                categories = adminMenu.categories;
+                foods = adminMenu.foods;
+            } else {
+                categories = JSON.parse(localStorage.getItem('adminCategories') || '[]');
+                foods = JSON.parse(localStorage.getItem('adminFoods') || '[]');
+            }
+        } catch (e) {
+            categories = JSON.parse(localStorage.getItem('adminCategories') || '[]');
+            foods = JSON.parse(localStorage.getItem('adminFoods') || '[]');
+        }
         // Admin accounts are managed by Supabase Auth. Never store passwords in browser storage.
         adminUsers = [];
         const mainAdminUsername = 'RASHID313';
 
-        // Menu persistence is handled directly by Supabase.
+        // No shared browser sync: use localStorage only for local persistence.
 
         function setImportedSavePending(enabled) {
             importedFoodsPending = Boolean(enabled);
@@ -995,6 +1007,9 @@
                 const menu = await KarakDB.getMenu();
                 categories = Array.isArray(menu.categories) ? menu.categories : [];
                 foods = Array.isArray(menu.foods) ? menu.foods : [];
+                localStorage.setItem('adminMenu', JSON.stringify({ categories, foods }));
+                localStorage.removeItem('adminCategories');
+                localStorage.removeItem('adminFoods');
                 console.info('Karak Station: menu loaded from Supabase.', { categories: categories.length, foods: foods.length });
                 return true;
             } catch (error) {
@@ -1005,7 +1020,11 @@
         }
 
         async function saveState() {
-            // Supabase is the only persistent store for menu data.
+            // Keep a small browser cache for the UI, but Supabase is the source of truth.
+            const adminMenu = { categories, foods };
+            localStorage.setItem('adminMenu', JSON.stringify(adminMenu));
+            localStorage.removeItem('adminCategories');
+            localStorage.removeItem('adminFoods');
             setImportedSavePending(false);
 
             try {
@@ -1398,22 +1417,12 @@
             setAuthMode();
         }
 
-        function getBlogPostCount() {
-            try {
-                const posts = JSON.parse(localStorage.getItem('blogPosts') || '[]');
-                return Array.isArray(posts) ? posts.length : 0;
-            } catch (error) {
-                return 0;
-            }
+        async function getBlogPostCount() {
+            try { const data = await window.KarakDB.getBlog(); return (data.posts || []).length; } catch (error) { return 0; }
         }
 
-        function getSpecialPosterCount() {
-            try {
-                const foods = JSON.parse(localStorage.getItem('specialPosterFoods') || '[]');
-                return Array.isArray(foods) ? foods.length : 0;
-            } catch (error) {
-                return 0;
-            }
+        async function getSpecialPosterCount() {
+            try { const foods = await window.KarakDB.getSpecialFoods(); return foods.length; } catch (error) { return 0; }
         }
 
         function getWhatsAppOrderCount() {
@@ -1432,7 +1441,7 @@
             }
         }
 
-        function renderDashboard() {
+        async function renderDashboard() {
             const foodCount = document.getElementById('dashboard-food-count');
             const availableFoodCount = document.getElementById('dashboard-available-food-count');
             const categoryCount = document.getElementById('dashboard-category-count');
@@ -1444,8 +1453,8 @@
             if (foodCount) foodCount.textContent = foods.length;
             if (availableFoodCount) availableFoodCount.textContent = foods.filter(item => item.status !== 'unavailable').length;
             if (categoryCount) categoryCount.textContent = categories.length;
-            if (blogCount) blogCount.textContent = getBlogPostCount();
-            if (posterCount) posterCount.textContent = getSpecialPosterCount();
+            if (blogCount) blogCount.textContent = await getBlogPostCount();
+            if (posterCount) posterCount.textContent = await getSpecialPosterCount();
             if (posterOrderCount) posterOrderCount.textContent = getSpecialPosterOrderCount();
             if (orderCount) orderCount.textContent = getWhatsAppOrderCount();
         }

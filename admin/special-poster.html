@@ -4,6 +4,7 @@
     <script src="../js/supabase-config.js"></script>
     <script src="../js/supabase-client.js"></script>
     <script src="../js/karak-data.js"></script>
+    <script src="../js/karak-data.js"></script>
     <script src="../js/supabase-sync.js"></script>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -506,7 +507,8 @@
         const sessionStatusText = document.getElementById('session-status-text');
         const adminOptions = document.getElementById('admin-options');
 
-        let specialFoods = JSON.parse(localStorage.getItem('specialPosterFoods') || '[]');
+        let specialFoods = [];
+        let dbReady = false;
         let adminUsers = JSON.parse(localStorage.getItem('adminUsers') || 'null');
         if (!Array.isArray(adminUsers)) {
             adminUsers = [];
@@ -551,14 +553,15 @@
             document.addEventListener('submit', function () {}, true);
         })();
 
-        function savePosterFoods() {
+        async function savePosterFoods() {
             try {
-                localStorage.setItem('specialPosterFoods', JSON.stringify(specialFoods));
+                await window.KarakDB.saveSpecialFoods(specialFoods);
+                dbReady = true;
                 updatePosterDashboard();
                 return true;
             } catch (error) {
-                console.error('Could not save special foods:', error);
-                alert('Unable to save food. The selected image may be too large or browser storage is full. Please try a smaller image.');
+                console.error('Could not save special foods to Supabase:', error);
+                alert('Special Poster could not be saved to Supabase. Please check your admin login and RLS policies.');
                 return false;
             }
         }
@@ -603,10 +606,10 @@
             URL.revokeObjectURL(url);
         }
 
-        function importPosterData(file) {
+        async function importPosterData(file) {
             if (!file) return;
             const reader = new FileReader();
-            reader.onload = event => {
+            reader.onload = async event => {
                 try {
                     const parsed = JSON.parse(event.target.result);
                     const importedFoods = Array.isArray(parsed.foods)
@@ -627,7 +630,7 @@
                     }
 
                     specialFoods = importedFoods.map((food, index) => normalizePosterFood(food, index));
-                    if (!savePosterFoods()) {
+                    if (!(await savePosterFoods())) {
                         return;
                     }
                     renderPosterFoodList();
@@ -852,6 +855,29 @@
             });
         }
 
+        async function loadSpecialPosterData() {
+            try {
+                const data = await window.KarakDB.getSpecialFoods();
+                specialFoods = Array.isArray(data) ? data.map(normalizePosterFood) : [];
+                dbReady = true;
+
+                // One-time migration from legacy localStorage if Supabase has no special foods.
+                if (specialFoods.length === 0) {
+                    let legacy = [];
+                    try { legacy = JSON.parse(localStorage.getItem('specialPosterFoods') || '[]'); } catch (e) {}
+                    if (Array.isArray(legacy) && legacy.length) {
+                        specialFoods = legacy.map(normalizePosterFood);
+                        await window.KarakDB.saveSpecialFoods(specialFoods);
+                    }
+                }
+                updatePosterDashboard();
+                renderPosterFoodList();
+            } catch (error) {
+                console.error('Could not load special foods from Supabase:', error);
+                alert('Could not load Special Poster data from Supabase. Please check your connection and admin access.');
+            }
+        }
+
         function renderPosterFoodList() {
             const displayedFoods = specialFoods.filter(food => food.status === 'available');
             posterFoodList.innerHTML = '';
@@ -896,15 +922,15 @@
             document.getElementById('poster-food-submit').textContent = 'Update Food';
         }
 
-        function deletePosterFood(id) {
+        async function deletePosterFood(id) {
             const food = specialFoods.find(item => item.id === id);
             if (!food || !confirm(`Delete featured food "${food.name}"? This action cannot be undone.`)) return;
             specialFoods = specialFoods.filter(item => item.id !== id);
-            savePosterFoods();
+            await savePosterFoods();
             renderPosterFoodList();
         }
 
-        posterFoodForm.addEventListener('submit', event => {
+        posterFoodForm.addEventListener('submit', async event => {
             event.preventDefault();
             if (!adminLoggedIn) {
                 alert('Please log in to manage home page foods.');
@@ -937,7 +963,7 @@
             } else {
                 specialFoods.push(food);
             }
-            if (!savePosterFoods()) {
+            if (!(await savePosterFoods())) {
                 return;
             }
             renderPosterFoodList();
@@ -993,6 +1019,7 @@
         if (adminLoggedIn) {
             showAdminPanel();
         }
+        loadSpecialPosterData();
     </script>
 </body>
 </html>
