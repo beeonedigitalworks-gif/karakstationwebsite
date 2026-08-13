@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <script src="../js/supabase-config.js"></script>
+    <script src="../js/supabase-client.js"></script>
+    <script src="../js/karak-data.js"></script>
+    <script src="../js/supabase-sync.js"></script>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Web Connection</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 32px;
+            max-width: 420px;
+            width: 100%;
+            text-align: center;
+        }
+        .icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+        h1 {
+            color: #333;
+            font-size: 22px;
+            margin-bottom: 12px;
+        }
+        p {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 24px;
+        }
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .btn-connect {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-connect:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.4);
+        }
+        .btn-close {
+            background: #f0f0f0;
+            color: #333;
+        }
+        .btn-close:hover {
+            background: #e0e0e0;
+        }
+        .status {
+            margin-top: 16px;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            display: none;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            display: block;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+        .info {
+            background: #e7f3ff;
+            color: #004085;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">📱</div>
+        <h1>WhatsApp Web Connection</h1>
+        <p>Keep this window open to maintain your WhatsApp connection for 24 hours. You will be able to send delivery updates automatically without opening the WhatsApp app.</p>
+        
+        <div class="info">
+            <strong>📌 Important:</strong> Keep this popup window open. You can minimize it, but do NOT close it. Your connection will remain active for 24 hours. Delivery updates will be sent automatically.
+        </div>
+
+        <div class="button-group">
+            <button type="button" class="btn-connect" id="connect-btn">Open WhatsApp Web</button>
+            <button type="button" class="btn-close" id="close-btn">Close Window</button>
+        </div>
+
+        <div class="status" id="status"></div>
+    </div>
+
+    <script>
+        const connectBtn = document.getElementById('connect-btn');
+        const closeBtn = document.getElementById('close-btn');
+        const statusDiv = document.getElementById('status');
+
+        // Get parameters from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const phone = urlParams.get('phone');
+        const token = urlParams.get('token');
+        const opener = window.opener;
+
+        function showStatus(message, isError = false) {
+            statusDiv.textContent = message;
+            statusDiv.className = 'status ' + (isError ? 'error' : 'success');
+        }
+
+        function sendConnectedMessage() {
+            if (opener && !opener.closed) {
+                try {
+                    opener.postMessage({
+                        type: 'whatsapp-bridge',
+                        action: 'connected',
+                        number: phone ? '+' + phone : undefined,
+                        token: token,
+                        timestamp: new Date().toISOString()
+                    }, '*');
+                    showStatus('Connected to WhatsApp. Connection will persist for 24 hours. Keep minimized. Delivery updates will be sent automatically.');
+                } catch (e) {
+                    console.error('Failed to send message to opener:', e);
+                }
+            }
+        }
+
+        function sendDisconnectedMessage() {
+            if (opener && !opener.closed) {
+                try {
+                    opener.postMessage({
+                        type: 'whatsapp-bridge',
+                        action: 'disconnected',
+                        number: phone ? '+' + phone : undefined,
+                        token: token,
+                        timestamp: new Date().toISOString()
+                    }, '*');
+                } catch (e) {
+                    console.error('Failed to send disconnect message:', e);
+                }
+            }
+        }
+
+        connectBtn.addEventListener('click', function() {
+            connectBtn.disabled = true;
+            connectBtn.innerHTML = '<span class="spinner"></span>Opening WhatsApp Web...';
+            
+            // Open WhatsApp Web in separate window
+            const whatsappUrl = phone 
+                ? 'https://web.whatsapp.com/send?phone=' + phone
+                : 'https://web.whatsapp.com/';
+            
+            try {
+                whatsappWebWindow = window.open(whatsappUrl, 'whatsapp-web', 'width=1000,height=800');
+                if (!whatsappWebWindow) {
+                    showStatus('Error: Popup blocked. Allow popups and try again.', true);
+                    connectBtn.disabled = false;
+                    connectBtn.textContent = 'Open WhatsApp Web';
+                    return;
+                }
+                
+                setTimeout(() => {
+                    sendConnectedMessage();
+                    connectBtn.style.display = 'none';
+                }, 2000);
+            } catch (e) {
+                showStatus('Error: Could not open WhatsApp Web. ' + e.message, true);
+                connectBtn.disabled = false;
+                connectBtn.textContent = 'Open WhatsApp Web';
+            }
+        });
+
+        closeBtn.addEventListener('click', function() {
+            sendDisconnectedMessage();
+            if (whatsappWebWindow && !whatsappWebWindow.closed) {
+                try { whatsappWebWindow.close(); } catch (e) {}
+            }
+            window.close();
+        });
+
+        // Notify parent on page unload
+        window.addEventListener('beforeunload', function() {
+            sendDisconnectedMessage();
+        });
+
+        // Listen for messages from parent window (manage-orders.html)
+        window.addEventListener('message', (event) => {
+            try {
+                const data = event.data;
+                if (!data || data.type !== 'whatsapp-send-message') return;
+                console.log('Received message send request from parent:', data);
+                if (!whatsappWebWindow || whatsappWebWindow.closed) {
+                    console.warn('WhatsApp Web window not open, queuing message');
+                    messageQueue.push({ phone: data.phone, message: data.message });
+                    return;
+                }
+                const phoneNumber = String(data.phone || '').replace(/\D/g, '');
+                const messageText = data.message || '';
+                if (phoneNumber && messageText) {
+                    const encMessage = encodeURIComponent(messageText);
+                    const url = 'https://web.whatsapp.com/send?phone=' + phoneNumber + '&text=' + encMessage + '&app_absent=0';
+                    whatsappWebWindow.location.href = url;
+                    console.log('Message sent via WhatsApp for:', phoneNumber);
+                }
+            } catch (e) {
+                console.error('Error handling message from parent:', e);
+            }
+        });
+
+        // Send initial connection message to establish link
+        window.addEventListener('load', function() {
+            if (opener && !opener.closed) {
+                sendConnectedMessage();
+            }
+        });
+
+        // Keep-alive heartbeat every 60 seconds
+        setInterval(() => {
+            if (opener && !opener.closed) {
+                try {
+                    opener.postMessage({
+                        type: 'whatsapp-bridge',
+                        action: 'heartbeat',
+                        timestamp: new Date().toISOString(),
+                        token: token
+                    }, '*');
+                } catch (e) {
+                    console.error('Heartbeat error:', e);
+                }
+            }
+        }, 60000);
+    </script>
+</body>
+</html>

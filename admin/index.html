@@ -1,0 +1,2053 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <script src="../js/supabase-config.js"></script>
+    <script src="../js/supabase-client.js"></script>
+    <script src="../js/karak-data.js"></script>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Main Admin Page</title>
+    <link rel="stylesheet" href="../css/bootstrap.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="https://unpkg.com/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+    <style>
+        :root {
+            --admin-bg: #060816;
+            --admin-panel: linear-gradient(145deg, rgba(15, 23, 42, 0.97), rgba(17, 24, 39, 0.95));
+            --admin-panel-soft: rgba(30, 41, 59, 0.9);
+            --admin-border: rgba(148, 163, 184, 0.22);
+            --admin-text: #f8fafc;
+            --admin-muted: #94a3b8;
+            --admin-accent: #ef4444;
+            --admin-accent-strong: #f87171;
+            --admin-accent-soft: rgba(239, 68, 68, 0.16);
+            --admin-shadow: 0 24px 70px rgba(2, 6, 23, 0.42);
+        }
+        body {
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: radial-gradient(circle at top left, rgba(239, 68, 68, 0.22), transparent 28%), linear-gradient(145deg, #020617 0%, #0f172a 45%, #111827 100%);
+            color: var(--admin-text);
+            letter-spacing: 0.01em;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 18px 60px;
+        }
+        .admin-card {
+            background: var(--admin-panel);
+            border: 1px solid var(--admin-border);
+            border-radius: 28px;
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: var(--admin-shadow);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+        .admin-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(248, 113, 113, 0.32);
+            box-shadow: 0 30px 90px rgba(2, 6, 23, 0.5);
+        }
+        .admin-card::before {
+            content: '';
+            position: absolute;
+            inset: 0 0 auto 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--admin-accent), transparent 70%);
+        }
+        .dashboard-card {
+            padding: 28px 30px;
+        }
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 16px;
+            margin-top: 18px;
+        }
+        .stat-card {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            border-radius: 20px;
+            padding: 18px;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .stat-card .stat-label {
+            color: #cbd5e1;
+            font-size: 0.95rem;
+        }
+        .stat-card .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #fff;
+        }
+        .stat-card .stat-foot {
+            color: #fda4af;
+            font-size: 0.9rem;
+        }
+        .dashboard-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .dashboard-actions a {
+            text-decoration: none;
+        }
+        .submitted-order-card {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            border-radius: 18px;
+            padding: 16px 18px;
+            margin-bottom: 12px;
+        }
+        .submitted-order-card .order-details {
+            white-space: pre-wrap;
+            color: #cbd5e1;
+            margin-top: 8px;
+            line-height: 1.6;
+        }
+        @media (max-width: 991px) {
+            .dashboard-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+        @media (max-width: 640px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        /* Scan modal styles */
+        .scan-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(2,6,23,0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1200;
+            padding: 24px;
+        }
+        .scan-modal.hidden { display: none; }
+        .scan-modal-content {
+            width: 100%;
+            max-width: 1000px;
+            max-height: 85vh;
+            overflow: auto;
+            background: var(--admin-panel);
+            border: 1px solid var(--admin-border);
+            border-radius: 12px;
+            padding: 18px;
+            box-shadow: var(--admin-shadow);
+        }
+        .scan-item { border-bottom: 1px solid rgba(255,255,255,0.04); padding: 10px 0; }
+        .scan-item:last-child { border-bottom: none; }
+        .scan-item .controls { display:flex; gap:8px; align-items:center; }
+        .admin-card-controls {
+            align-items: center;
+        }
+        .admin-card h2 {
+            margin-top: 0;
+            color: #e2e8f0;
+            letter-spacing: 0.01em;
+        }
+        .auth-card {
+            max-width: 700px;
+            margin: 0 auto 32px;
+            padding: 40px;
+            background: linear-gradient(145deg, rgba(15, 23, 42, 0.98), rgba(17, 24, 39, 0.95));
+            border: 1px solid var(--admin-border);
+            border-radius: 32px;
+            box-shadow: var(--admin-shadow);
+        }
+        .auth-card h2 {
+            font-size: 32px;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+        .auth-card p {
+            color: #cbd5e1;
+            margin-bottom: 28px;
+        }
+        .admin-header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 18px;
+            align-items: center;
+            padding: 30px 32px;
+            background: linear-gradient(145deg, rgba(15, 23, 42, 0.98), rgba(17, 24, 39, 0.95));
+            border-radius: 28px;
+            border: 1px solid var(--admin-border);
+            margin-bottom: 24px;
+            box-shadow: var(--admin-shadow);
+        }
+        .admin-header h1 {
+            margin: 0;
+            font-size: 32px;
+            color: #fff;
+        }
+        .admin-header p {
+            margin: 8px 0 0;
+            color: #94a3b8;
+            max-width: 600px;
+        }
+        .form-label {
+            font-weight: 700;
+            color: #e2e8f0;
+        }
+        .form-control,
+        .form-select {
+            background: rgba(15, 23, 42, 0.92);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 14px;
+            color: #e2e8f0;
+            box-shadow: inset 0 2px 12px rgba(15, 23, 42, 0.4);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .form-control::placeholder {
+            color: #94a3b8;
+        }
+        .btn,
+        .btn-primary,
+        .btn-success,
+        .btn-outline-primary,
+        .btn-outline-danger,
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 46px;
+            padding: 11px 18px;
+            font-size: 14px;
+            font-weight: 700;
+            line-height: 1.2;
+            border-radius: 14px;
+            transition: transform .2s ease, box-shadow .2s ease, background .2s ease, color .2s ease, border-color .2s ease;
+        }
+        .btn:hover,
+        .btn:focus,
+        .btn-primary:hover,
+        .btn-primary:focus,
+        .btn-success:hover,
+        .btn-success:focus,
+        .btn-outline-primary:hover,
+        .btn-outline-primary:focus,
+        .btn-outline-danger:hover,
+        .btn-outline-danger:focus,
+        .btn-secondary:hover,
+        .btn-secondary:focus {
+            transform: translateY(-1px);
+        }
+        .btn-primary,
+        .btn-success {
+            background: linear-gradient(135deg, var(--admin-accent), #fb7185);
+            border-color: transparent;
+            color: #fff;
+            box-shadow: 0 14px 28px rgba(239, 68, 68, 0.2);
+        }
+        .btn-primary:hover,
+        .btn-primary:focus,
+        .btn-success:hover,
+        .btn-success:focus {
+            background: linear-gradient(135deg, var(--admin-accent-strong), #f43f5e);
+            box-shadow: 0 18px 30px rgba(248, 113, 113, 0.24);
+        }
+        .btn-outline-primary,
+        .btn-outline-danger,
+        .btn-secondary {
+            border-color: rgba(239, 68, 68, 0.35);
+            color: #f87171;
+            background: rgba(255, 255, 255, 0.02);
+        }
+        .btn-outline-primary:hover,
+        .btn-outline-primary:focus,
+        .btn-outline-danger:hover,
+        .btn-outline-danger:focus,
+        .btn-secondary:hover,
+        .btn-secondary:focus {
+            background: rgba(248, 113, 113, 0.1);
+            color: #fda4af;
+        }
+        .btn-small {
+            min-height: 42px;
+            padding: 10px 16px;
+            font-size: 13px;
+            border-radius: 12px;
+        }
+        .food-items-grid {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 18px;
+            margin: 0;
+            padding: 0;
+        }
+        .food-item-card {
+            background: linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(17, 24, 39, 0.9));
+            border: 1px solid rgba(148, 163, 184, 0.14);
+            border-radius: 24px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            box-shadow: 0 18px 40px rgba(15, 23, 42, 0.25);
+            min-height: 320px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+        .food-item-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 22px 42px rgba(2, 6, 23, 0.34);
+            border-color: rgba(248, 113, 113, 0.24);
+        }
+        .food-item-card img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 18px;
+        }
+        .food-item-card-body {
+            display: grid;
+            gap: 10px;
+        }
+        .food-item-card h3 {
+            margin: 0;
+            color: #fff;
+            font-size: 18px;
+            line-height: 1.2;
+        }
+        .food-item-card .arabic-name {
+            margin: 0;
+            color: #fbbf24;
+            font-size: 16px;
+            line-height: 1.3;
+            direction: rtl;
+            text-align: right;
+        }
+        .food-item-card p,
+        .food-item-card span {
+            color: #cbd5e1;
+            margin: 0;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .food-item-card .food-meta {
+            display: grid;
+            gap: 8px;
+        }
+        .food-item-card .food-meta span {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 14px;
+            padding: 8px 12px;
+            font-size: 13px;
+            color: #e2e8f0;
+        }
+        .food-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: auto;
+        }
+        .category-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 18px;
+        }
+        .category-chip {
+            padding: 10px 16px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .category-chip span {
+            color: #cbd5e1;
+        }
+        .category-chip button {
+            border: none;
+            background: transparent;
+            color: #f87171;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .admin-footer {
+            padding: 22px 0;
+            text-align: center;
+            color: #94a3b8;
+        }
+        .admin-footer strong {
+            color: #e2e8f0;
+        }
+        .form-control:focus,
+        .form-select:focus {
+            border-color: rgba(239, 68, 68, 0.7);
+            box-shadow: 0 0 0 0.2rem rgba(248, 113, 113, 0.18);
+            outline: none;
+        }
+        .list-group-item {
+            background: transparent;
+            border: none;
+            padding: 18px 0;
+        }
+        .list-group {
+            margin: 0;
+            padding: 0;
+        }
+        .list-group-item + .list-group-item {
+            border-top: 1px solid rgba(148, 163, 184, 0.14);
+        }
+        .text-muted {
+            color: #94a3b8 !important;
+        }
+        .badge {
+            background: rgba(239, 68, 68, 0.14);
+            color: #fee2e2;
+            border: 1px solid rgba(248, 113, 113, 0.4);
+            padding: 8px 14px;
+            border-radius: 999px;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+        }
+        .dropdown .form-select {
+            min-width: 180px;
+        }
+        @media (max-width: 1400px) {
+            .food-items-grid {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+            }
+        }
+        @media (max-width: 1100px) {
+            .food-items-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+        @media (max-width: 860px) {
+            .food-items-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+        @media (max-width: 640px) {
+            .food-items-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        @media (max-width: 991px) {
+            .admin-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .dropdown .form-select {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <section id="auth-screen" class="admin-card auth-card">
+            <div class="d-flex align-items-center justify-content-between mb-4">
+                <div>
+                    <h2 id="auth-title">Admin Login</h2>
+                    <p id="auth-message">Secure access to your menu management dashboard.</p>
+                </div>
+                <div>
+                    <span class="badge">Secure login</span>
+                </div>
+            </div>
+            <form id="auth-form" class="row g-3">
+                <div class="col-md-6">
+                    <label for="auth-username" class="form-label">Username</label>
+                    <input id="auth-username" class="form-control" type="text" placeholder="Enter username" required>
+                </div>
+                <div class="col-md-6">
+                    <label for="auth-password" class="form-label">Password</label>
+                    <input id="auth-password" class="form-control" type="password" placeholder="Enter password" required>
+                </div>
+                <div class="col-md-6 d-none" id="auth-confirm-group">
+                    <label for="auth-confirm" class="form-label">Confirm Password</label>
+                    <input id="auth-confirm" class="form-control" type="password" placeholder="Confirm password">
+                </div>
+                <div class="col-12 d-flex flex-wrap gap-2 align-items-center">
+                    <button type="submit" id="auth-submit" class="btn btn-primary">Login</button>
+                    <div id="auth-status" class="auth-status d-none">
+                        <span class="auth-spinner"></span>
+                        <span id="auth-status-text">Signing in...</span>
+                    </div>
+                </div>
+            </form>
+        </section>
+        <div id="admin-panel" class="d-none">
+            <header class="admin-header">
+                <div>
+                    <h1>Main Admin Dashboard</h1>
+                    <p>Welcome to the premium admin workspace. Control your menu, categories, and administrator accounts from one elegant dashboard.</p>
+                </div>
+                <div class="d-flex flex-wrap gap-3 align-items-center">
+                        <span id="current-user-badge" class="badge">Not signed in</span>
+                    <div id="session-status" class="session-status d-none">
+                        <span class="session-spinner"></span>
+                        <span id="session-status-text">Signing out...</span>
+                    </div>
+                    <div class="dropdown">
+                        <select id="admin-options" class="form-select form-select-sm">
+                            <option value="manage-admins">Manage Admins</option>
+                            <option value="special-poster">Special Poster</option>
+                            <option value="blog-manager">Blog Manager</option>
+                            <option value="manage-orders">Manage Orders</option>
+                            <option value="home">Back to Home</option>
+                            <option value="menu">View Menu</option>
+                            <option value="logout">Logout</option>
+                        </select>
+                    </div>
+                </div>
+            </header>
+
+            <section class="admin-card dashboard-card">
+                <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+                    <div>
+                        <h2 class="mb-2">Admin Dashboard</h2>
+                        <p class="text-muted mb-0">Track your menu content, blog activity, special offers, and WhatsApp orders from one place.</p>
+                    </div>
+                    <span class="badge">Live overview</span>
+                </div>
+                <div class="dashboard-grid">
+                    <div class="stat-card">
+                        <span class="stat-label">Food list</span>
+                        <strong class="stat-value" id="dashboard-food-count">0</strong>
+                        <span class="stat-foot">Menu items</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Available foods</span>
+                        <strong class="stat-value" id="dashboard-available-food-count">0</strong>
+                        <span class="stat-foot">Currently available</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Categories</span>
+                        <strong class="stat-value" id="dashboard-category-count">0</strong>
+                        <span class="stat-foot">Saved categories</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Blog posts</span>
+                        <strong class="stat-value" id="dashboard-blog-count">0</strong>
+                        <span class="stat-foot">Published articles</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Special poster</span>
+                        <strong class="stat-value" id="dashboard-poster-count">0</strong>
+                        <span class="stat-foot">Featured foods</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Special poster orders</span>
+                        <strong class="stat-value" id="dashboard-specialposter-order-count">0</strong>
+                        <span class="stat-foot">WhatsApp orders</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">WhatsApp orders</span>
+                        <strong class="stat-value" id="dashboard-order-count">0</strong>
+                        <span class="stat-foot">Submitted orders</span>
+                    </div>
+                </div>
+                <div class="dashboard-actions">
+                    <a href="#manage-admins-section" class="btn btn-outline-primary btn-small">Manage Admins</a>
+                    <a href="#food-form" class="btn btn-outline-primary btn-small">Add Food</a>
+                    <a href="blog.html" class="btn btn-outline-primary btn-small">Manage Blog</a>
+                    <a href="special-poster.html" class="btn btn-outline-primary btn-small">Special Poster</a>
+                    <button type="button" class="btn btn-outline-primary btn-small" id="open-manage-orders-btn">Manage Orders</button>
+                </div>
+            </section>
+
+            <section class="admin-card" aria-labelledby="whatsapp-settings-title" aria-describedby="whatsapp-settings-desc">
+                <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+                    <div>
+                        <h2 id="whatsapp-settings-title">WhatsApp Destinations</h2>
+                        <p class="text-muted mb-0" id="whatsapp-settings-desc">Manage the WhatsApp destination used for orders and table booking requests in one place.</p>
+                    </div>
+                    <div class="d-flex gap-2 flex-column align-items-end">
+                        <span class="badge" id="whatsapp-settings-current">Not saved</span>
+                        <span class="badge bg-secondary" id="whatsapp-booking-settings-current">Not saved</span>
+                    </div>
+                </div>
+
+                <div class="row g-3 mt-4">
+                    <div class="col-md-6">
+                        <div class="card bg-dark border-light h-100">
+                            <div class="card-body">
+                                <h3 class="h5 mb-3">Order Destination</h3>
+                                <p class="text-muted small">Used when customers place orders from menu and special poster pages.</p>
+                                <form id="whatsapp-settings-form" class="row g-3">
+                                    <div class="col-12">
+                                        <label for="whatsapp-country-code" class="form-label">Country Code</label>
+                                        <input id="whatsapp-country-code" class="form-control" type="text" value="+974" placeholder="+974" required>
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="whatsapp-phone-number" class="form-label">WhatsApp Number</label>
+                                        <input id="whatsapp-phone-number" class="form-control" type="text" placeholder="77821400" required>
+                                    </div>
+                                    <div class="col-12 d-flex justify-content-end">
+                                        <button type="submit" class="btn btn-success btn-small">Save Order</button>
+                                    </div>
+                                </form>
+                                <div class="mt-3">
+                                    <small class="text-muted" id="whatsapp-settings-preview">Current destination: +974 77821400</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card bg-dark border-light h-100">
+                            <div class="card-body">
+                                <h3 class="h5 mb-3">Booking Destination</h3>
+                                <p class="text-muted small">Used when customers submit table booking requests.</p>
+                                <form id="whatsapp-booking-settings-form" class="row g-3">
+                                    <div class="col-12">
+                                        <label for="whatsapp-booking-country-code" class="form-label">Country Code</label>
+                                        <input id="whatsapp-booking-country-code" class="form-control" type="text" value="+974" placeholder="+974" required>
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="whatsapp-booking-phone-number" class="form-label">WhatsApp Number</label>
+                                        <input id="whatsapp-booking-phone-number" class="form-control" type="text" placeholder="77821400" required>
+                                    </div>
+                                    <div class="col-12 d-flex justify-content-end">
+                                        <button type="submit" class="btn btn-success btn-small">Save Booking</button>
+                                    </div>
+                                </form>
+                                <div class="mt-3">
+                                    <small class="text-muted" id="whatsapp-booking-settings-preview">Current destination: +974 77821400</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="admin-card" id="manage-admins-section">
+                <h2>Manage Admins</h2>
+                <p class="text-muted">Use the administrator username and password already saved below, or add more admins.</p>
+                <form id="user-form" class="row g-3">
+                    <div class="col-md-4">
+                        <label for="user-username" class="form-label">Username</label>
+                        <input id="user-username" class="form-control" type="text" placeholder="Enter username" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="user-password" class="form-label">Password</label>
+                        <input id="user-password" class="form-control" type="password" placeholder="Enter password" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="user-confirm" class="form-label">Confirm Password</label>
+                        <input id="user-confirm" class="form-control" type="password" placeholder="Confirm password" required>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-success btn-small">Add Admin</button>
+                    </div>
+                </form>
+                <div id="user-list" class="mt-3"></div>
+            </section>
+
+            <section class="admin-card">
+                <h2>Add Category</h2>
+                <form id="category-form" class="row g-3">
+                <div class="col-sm-8">
+                    <label for="category-name" class="form-label">Category Name</label>
+                    <input id="category-name" class="form-control" type="text" placeholder="e.g. Breakfast" required>
+                </div>
+                <div class="col-sm-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100 btn-small">Add Category</button>
+                </div>
+            </form>
+            <div class="category-list mt-3" id="category-list"></div>
+        </section>
+
+        <section class="admin-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <h2>Add / Edit Food</h2>
+                <div class="admin-card-controls d-flex gap-2 align-items-center">
+                    <button type="button" class="btn btn-outline-primary" id="export-foods">Export Foods</button>
+                    <button type="button" class="btn btn-outline-primary" id="import-foods">Import Foods</button>
+                    <button type="button" class="btn btn-primary d-none" id="save-imported-data">Save Imported Data</button>
+                    <button type="button" class="btn btn-outline-primary" id="scan-foods">Scan File</button>
+                    <div class="d-flex align-items-center gap-2">
+                        <!-- OCR provider selection removed; client-side OCR (Tesseract) is used by default -->
+                    </div>
+                    <input type="file" id="import-foods-file" accept="application/json" style="display:none;">
+                    <input type="file" id="scan-file-input" accept="application/pdf,image/*" style="display:none;" multiple>
+                </div>
+            </div>
+            <form id="food-form" class="row g-3">
+                <input type="hidden" id="food-id">
+                <div class="col-md-6">
+                    <label for="food-name" class="form-label">Food Name</label>
+                    <input id="food-name" class="form-control" type="text" placeholder="Food name" required>
+                </div>
+                <div class="col-md-6">
+                    <label for="food-arabic-name" class="form-label">Food Name (Arabic)</label>
+                    <div class="d-flex gap-2 align-items-center">
+                        <input id="food-arabic-name" class="form-control" type="text" placeholder="Auto-generated from Food Name" readonly data-confirmed="false">
+                        <button type="button" id="edit-food-arabic" class="btn btn-outline-primary btn-small">Edit</button>
+                        <button type="button" id="confirm-food-arabic" class="btn btn-success btn-small d-none">Confirm</button>
+                    </div>
+                    <small id="food-arabic-hint" class="text-muted">Auto-generated — click Edit to correct, then Confirm.</small>
+                </div>
+                <div class="col-md-3">
+                    <label for="food-amount" class="form-label">Amount</label>
+                    <input id="food-amount" class="form-control" type="text" placeholder="e.g. QR 25 / 28" required>
+                </div>
+                <div class="col-md-3">
+                    <label for="food-image" class="form-label">Image URL / Upload</label>
+                    <div class="d-flex gap-2 align-items-center">
+                        <input id="food-image" class="form-control" type="text" placeholder="Add image URL or upload path">
+                        <input id="food-image-file" class="form-control" type="file" accept="image/*" style="max-width:160px;">
+                    </div>
+                    <small class="text-muted">You can paste an image URL or choose a file to upload (saved as a data URL).</small>
+                    <div style="margin-top:8px;">
+                        <img id="food-image-preview" src="" alt="preview" style="max-width:120px; display:none; border-radius:8px;">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label for="food-category" class="form-label">Category</label>
+                    <select id="food-category" class="form-select" required>
+                        <option value="">Select category</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="food-status" class="form-label">Status</label>
+                    <select id="food-status" class="form-select">
+                        <option value="available">Available</option>
+                        <option value="unavailable">Unavailable</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <label for="food-description" class="form-label">Description</label>
+                    <textarea id="food-description" class="form-control" rows="4" placeholder="Describe the food item"></textarea>
+                </div>
+                <div class="col-12 d-flex gap-2">
+                    <button type="submit" class="btn btn-success btn-small" id="food-submit">Save Food</button>
+                    <button type="button" class="btn btn-secondary btn-small" id="food-reset">Reset</button>
+                </div>
+            </form>
+        </section>
+
+        <section class="admin-card">
+            <h2>Food Items</h2>
+            <div id="food-list" class="food-items-grid"></div>
+        </section>
+    </div>
+
+    <footer class="admin-footer">
+        <p>KARAKSTATION</p>
+        <div style="margin-top:8px;">
+            <a href="https://www.facebook.com/profile.php?id=61590693355336" target="_blank" rel="noopener" style="color:inherit; text-decoration:none; margin-right:8px;"><i class="fab fa-facebook-f"></i> Facebook</a>
+            <a href="https://www.instagram.com/karakstationqt/" target="_blank" rel="noopener" style="color:inherit; text-decoration:none; margin-right:8px;"><i class="fab fa-instagram"></i> Instagram</a>
+        </div>
+    </footer>
+
+    <script>
+        const authScreen = document.getElementById('auth-screen');
+        const authTitle = document.getElementById('auth-title');
+        const authMessage = document.getElementById('auth-message');
+        const authForm = document.getElementById('auth-form');
+        const authUsername = document.getElementById('auth-username');
+        const authPassword = document.getElementById('auth-password');
+        const authConfirm = document.getElementById('auth-confirm');
+        const authConfirmGroup = document.getElementById('auth-confirm-group');
+        const authSubmit = document.getElementById('auth-submit');
+        const adminPanel = document.getElementById('admin-panel');
+        const logoutBtn = document.getElementById('logout-btn');
+        const categoryForm = document.getElementById('category-form');
+        const categoryNameInput = document.getElementById('category-name');
+        const categoryList = document.getElementById('category-list');
+        const foodForm = document.getElementById('food-form');
+        const foodIdInput = document.getElementById('food-id');
+        const foodNameInput = document.getElementById('food-name');
+        const foodArabicNameInput = document.getElementById('food-arabic-name');
+        const foodAmountInput = document.getElementById('food-amount');
+        const foodImageInput = document.getElementById('food-image');
+        const foodImageFileInput = document.getElementById('food-image-file');
+        const foodImagePreview = document.getElementById('food-image-preview');
+        const foodCategorySelect = document.getElementById('food-category');
+        const foodDescriptionInput = document.getElementById('food-description');
+        const foodStatusSelect = document.getElementById('food-status');
+        const foodList = document.getElementById('food-list');
+        const foodResetButton = document.getElementById('food-reset');
+        const exportFoodsButton = document.getElementById('export-foods');
+        const importFoodsButton = document.getElementById('import-foods');
+        const importFoodsFile = document.getElementById('import-foods-file');
+        const scanFoodsButton = document.getElementById('scan-foods');
+        const scanFileInput = document.getElementById('scan-file-input');
+        // OCR provider selection removed; default to client OCR (Tesseract)
+        const userForm = document.getElementById('user-form');
+        const userUsernameInput = document.getElementById('user-username');
+        const userPasswordInput = document.getElementById('user-password');
+        const userConfirmInput = document.getElementById('user-confirm');
+        const userList = document.getElementById('user-list');
+        const currentUserBadge = document.getElementById('current-user-badge');
+        const saveImportedDataButton = document.getElementById('save-imported-data');
+        const openManageOrdersButton = document.getElementById('open-manage-orders-btn');
+        const whatsappSettingsForm = document.getElementById('whatsapp-settings-form');
+        const whatsappCountryCodeInput = document.getElementById('whatsapp-country-code');
+        const whatsappPhoneNumberInput = document.getElementById('whatsapp-phone-number');
+        const whatsappSettingsCurrent = document.getElementById('whatsapp-settings-current');
+        const whatsappSettingsPreview = document.getElementById('whatsapp-settings-preview');
+        const whatsappBookingSettingsForm = document.getElementById('whatsapp-booking-settings-form');
+        const whatsappBookingCountryCodeInput = document.getElementById('whatsapp-booking-country-code');
+        const whatsappBookingPhoneNumberInput = document.getElementById('whatsapp-booking-phone-number');
+        const whatsappBookingSettingsCurrent = document.getElementById('whatsapp-booking-settings-current');
+        const whatsappBookingSettingsPreview = document.getElementById('whatsapp-booking-settings-preview');
+        const authStatus = document.getElementById('auth-status');
+        const authStatusText = document.getElementById('auth-status-text');
+        const sessionStatus = document.getElementById('session-status');
+        const sessionStatusText = document.getElementById('session-status-text');
+        const adminOptions = document.getElementById('admin-options');
+        const manageAdminsSection = document.getElementById('manage-admins-section');
+        // Local admin storage only: no cross-tab sync or shared state.
+        let categories = [];
+        let foods = [];
+        let importedFoodsPending = false;
+        let adminUsers = [];
+        let adminUser = JSON.parse(sessionStorage.getItem('currentAdminUser') || 'null');
+        let adminLoggedIn = sessionStorage.getItem('adminLoggedIn') === 'true';
+        let currentEditingAdmin = null;
+
+        function getWhatsAppOrderSettings() {
+            try {
+                const stored = localStorage.getItem('karakWhatsAppOrderSettings');
+                if (stored) {
+                    const parsed = JSON.parse(stored);
+                    return {
+                        countryCode: parsed.countryCode || '+974',
+                        phoneNumber: parsed.phoneNumber || '77821400'
+                    };
+                }
+            } catch (e) {}
+            return {
+                countryCode: '+974',
+                phoneNumber: '77821400'
+            };
+        }
+
+        function getWhatsAppOrderNumber() {
+            const settings = getWhatsAppOrderSettings();
+            const normalizedCode = String(settings.countryCode || '').trim().replace(/\D/g, '');
+            const normalizedNumber = String(settings.phoneNumber || '').trim().replace(/\D/g, '');
+            if (!normalizedCode && !normalizedNumber) {
+                return '';
+            }
+            return normalizedCode ? `+${normalizedCode}${normalizedNumber}` : `+${normalizedNumber}`;
+        }
+
+        function formatWhatsAppDestination(settings) {
+            const code = String(settings.countryCode || '').trim();
+            const number = String(settings.phoneNumber || '').trim();
+            if (!code && !number) {
+                return 'Not configured';
+            }
+            return `${code} ${number}`.trim();
+        }
+
+        function updateWhatsAppSettingsUI() {
+            const settings = getWhatsAppOrderSettings();
+            whatsappCountryCodeInput.value = settings.countryCode || '+974';
+            whatsappPhoneNumberInput.value = settings.phoneNumber || '77821400';
+            whatsappSettingsCurrent.textContent = formatWhatsAppDestination(settings);
+            whatsappSettingsPreview.textContent = `Current destination: ${formatWhatsAppDestination(settings)}`;
+        }
+
+        function getWhatsAppBookingSettings() {
+            try {
+                const stored = localStorage.getItem('karakWhatsAppBookingSettings');
+                if (stored) {
+                    const parsed = JSON.parse(stored);
+                    return {
+                        countryCode: parsed.countryCode || '+974',
+                        phoneNumber: parsed.phoneNumber || '77821400'
+                    };
+                }
+            } catch (e) {}
+            return {
+                countryCode: '+974',
+                phoneNumber: '77821400'
+            };
+        }
+
+        function getWhatsAppBookingNumber() {
+            const settings = getWhatsAppBookingSettings();
+            const normalizedCode = String(settings.countryCode || '').trim().replace(/\D/g, '');
+            const normalizedNumber = String(settings.phoneNumber || '').trim().replace(/\D/g, '');
+            if (!normalizedCode && !normalizedNumber) {
+                return '';
+            }
+            return normalizedCode ? `+${normalizedCode}${normalizedNumber}` : `+${normalizedNumber}`;
+        }
+
+        function updateWhatsAppBookingSettingsUI() {
+            const settings = getWhatsAppBookingSettings();
+            whatsappBookingCountryCodeInput.value = settings.countryCode || '+974';
+            whatsappBookingPhoneNumberInput.value = settings.phoneNumber || '77821400';
+            whatsappBookingSettingsCurrent.textContent = formatWhatsAppDestination(settings);
+            whatsappBookingSettingsPreview.textContent = `Current destination: ${formatWhatsAppDestination(settings)}`;
+        }
+
+        function saveWhatsAppBookingSettings(event) {
+            event.preventDefault();
+            const settings = {
+                countryCode: (whatsappBookingCountryCodeInput.value || '+974').trim() || '+974',
+                phoneNumber: (whatsappBookingPhoneNumberInput.value || '77821400').trim() || '77821400'
+            };
+            localStorage.setItem('karakWhatsAppBookingSettings', JSON.stringify(settings));
+            updateWhatsAppBookingSettingsUI();
+            alert('WhatsApp booking settings saved successfully.');
+        }
+
+        function saveWhatsAppOrderSettings(event) {
+            event.preventDefault();
+            const settings = {
+                countryCode: (whatsappCountryCodeInput.value || '+974').trim() || '+974',
+                phoneNumber: (whatsappPhoneNumberInput.value || '77821400').trim() || '77821400'
+            };
+            localStorage.setItem('karakWhatsAppOrderSettings', JSON.stringify(settings));
+            updateWhatsAppSettingsUI();
+            alert('WhatsApp order settings saved successfully.');
+        }
+
+        whatsappSettingsForm.addEventListener('submit', saveWhatsAppOrderSettings);
+        whatsappBookingSettingsForm.addEventListener('submit', saveWhatsAppBookingSettings);
+        if (openManageOrdersButton) {
+            openManageOrdersButton.addEventListener('click', () => {
+                sessionStorage.setItem('adminInternalNav', Date.now().toString());
+                window.location.href = 'manage-orders-v4.html';
+            });
+        }
+        updateWhatsAppSettingsUI();
+        updateWhatsAppBookingSettingsUI();
+
+        // Inactivity / navigation handling
+        (function setupInactivityAndNavigation() {
+            const INACTIVITY_LIMIT = 5 * 60 * 1000; // 5 minutes
+
+            function updateLastActive() {
+                try { sessionStorage.setItem('adminLastActive', Date.now().toString()); } catch (e) {}
+            }
+
+            // mark activity on common interactions
+            ['mousemove','keydown','click','touchstart'].forEach(evt => document.addEventListener(evt, updateLastActive, {passive:true}));
+
+            // when page loads, if session exists but last active is older than limit, logout
+            try {
+                const last = parseInt(sessionStorage.getItem('adminLastActive') || '0', 10);
+                if (adminLoggedIn && last && (Date.now() - last) > INACTIVITY_LIMIT) {
+                    showAuthScreen();
+                    alert('Logged out due to inactivity.');
+                }
+            } catch (e) {}
+
+            // periodic check while page is open
+            setInterval(() => {
+                try {
+                    if (!adminLoggedIn) return;
+                    const last = parseInt(sessionStorage.getItem('adminLastActive') || '0', 10);
+                    if (last && (Date.now() - last) > INACTIVITY_LIMIT) {
+                        showAuthScreen();
+                        alert('Logged out due to inactivity.');
+                    }
+                } catch (e) {}
+            }, 10000);
+
+            // detect internal navigation by catching anchor clicks and form submissions
+            function markInternalNav() {
+                try {
+                    sessionStorage.setItem('adminInternalNav', Date.now().toString());
+                } catch (e) {}
+            }
+            // Note: data is preserved on page refresh. Logout now occurs only by inactivity or explicit sign-out.
+        })();
+
+        // Supabase is the source of truth. Do not load menu data from localStorage.
+        categories = [];
+        foods = [];
+        // Admin accounts are managed by Supabase Auth. Never store passwords in browser storage.
+        adminUsers = [];
+        const mainAdminUsername = 'RASHID313';
+
+        // Menu persistence is handled directly by Supabase.
+
+        function setImportedSavePending(enabled) {
+            importedFoodsPending = Boolean(enabled);
+            if (saveImportedDataButton) {
+                saveImportedDataButton.classList.toggle('d-none', !importedFoodsPending);
+            }
+        }
+
+        async function loadMenuFromSupabase() {
+            try {
+                if (!window.KarakDB) throw new Error('Database adapter is not loaded.');
+                const menu = await KarakDB.getMenu();
+                categories = Array.isArray(menu.categories) ? menu.categories : [];
+                foods = Array.isArray(menu.foods) ? menu.foods : [];
+                console.info('Karak Station: menu loaded from Supabase.', { categories: categories.length, foods: foods.length });
+                return true;
+            } catch (error) {
+                console.error('Karak Station: failed to load menu from Supabase:', error);
+                alert('Could not load menu from Supabase: ' + (error.message || error));
+                return false;
+            }
+        }
+
+        async function saveState() {
+            // Supabase is the only persistent store for menu data.
+            setImportedSavePending(false);
+
+            try {
+                await KarakDB.saveMenu(categories, foods);
+                console.info('Karak Station: menu saved to Supabase.', { categories: categories.length, foods: foods.length });
+            } catch (error) {
+                console.error('Karak Station: menu save failed:', error);
+                alert('Food/Menu was not saved to Supabase: ' + (error.message || error));
+            }
+        }
+
+        function saveUsers() {
+            // Supabase Auth is the source of truth for admin accounts.
+            console.info('Admin account changes must be made in Supabase Auth / admin_profiles.');
+        }
+
+        function downloadFoodsJson() {
+            const exportData = { categories, foods };
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'karakstation-foods.json';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        function importFoodsJson(file) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                try {
+                    const imported = JSON.parse(reader.result);
+                    if (!imported || !Array.isArray(imported.foods)) {
+                        throw new Error('Invalid import file format. Expected JSON with a foods array.');
+                    }
+                    foods = imported.foods.map(item => ({
+                        id: item.id || Date.now().toString() + Math.random().toString(36).slice(2),
+                        name: item.name || '',
+                        arabicName: item.arabicName || '',
+                        arabicConfirmed: !!item.arabicConfirmed,
+                        amount: item.amount || '',
+                        image: item.image || '',
+                        category: item.category || '',
+                        description: item.description || '',
+                        status: item.status || 'available'
+                    }));
+                    if (Array.isArray(imported.categories)) {
+                        categories = imported.categories;
+                    } else {
+                        categories = Array.from(new Set(foods.map(item => item.category).filter(Boolean)));
+                    }
+                    setImportedSavePending(true);
+                    renderCategories();
+                    renderFoods();
+                    alert('Food data imported. Click Save Imported Data to persist the changes.');
+                } catch (error) {
+                    alert('Import failed: ' + error.message);
+                }
+            };
+            reader.onerror = () => {
+                alert('Failed to read the selected file.');
+            };
+            reader.readAsText(file);
+        }
+
+        function saveUser(username, password) {
+            return { success: false, message: 'Admin accounts are managed securely in Supabase Auth. Create the user there, then add the user id to admin_profiles.' };
+        }
+
+        function findUser(username) {
+            const normalizedUsername = username.trim().toLowerCase();
+            return adminUsers.find(user => user.username.toLowerCase() === normalizedUsername);
+        }
+
+        function verifyUser(username, password) { return false; }
+
+        function isMainAdmin() {
+            return adminUser && adminUser.username.trim().toLowerCase() === 'rashid313';
+        }
+
+        function updateUser(oldUsername, newUsername, newPassword) {
+            const user = adminUsers.find(u => u.username.toLowerCase() === oldUsername.toLowerCase());
+            if (!user) {
+                return { success: false, message: 'User not found.' };
+            }
+            const normalizedUsername = newUsername.trim();
+            if (!normalizedUsername) {
+                return { success: false, message: 'Please enter a username.' };
+            }
+            if (oldUsername.toLowerCase() !== normalizedUsername.toLowerCase() &&
+                adminUsers.some(u => u.username.toLowerCase() === normalizedUsername.toLowerCase())) {
+                return { success: false, message: 'That username already exists.' };
+            }
+            user.username = normalizedUsername;
+            if (newPassword) {
+                user.password = btoa(newPassword);
+            }
+            saveUsers();
+            if (adminUser && adminUser.username.toLowerCase() === oldUsername.toLowerCase()) {
+                adminUser = { username: normalizedUsername, password: user.password };
+                sessionStorage.setItem('currentAdminUser', JSON.stringify(adminUser));
+                currentUserBadge.textContent = `Signed in as ${adminUser.username}`;
+            }
+            return { success: true };
+        }
+
+        let translationTimeout;
+
+        function clearAuthForm() {
+            authForm.reset();
+            userForm.reset();
+        }
+
+        function translateFoodNameToArabic(name) {
+            const dictionary = {
+                chicken: 'دجاج',
+                beef: 'لحم بقري',
+                lamb: 'لحم ضأن',
+                fish: 'سمك',
+                cheese: 'جبن',
+                rice: 'أرز',
+                salad: 'سلطة',
+                burger: 'برغر',
+                pizza: 'بيتزا',
+                soup: 'حساء',
+                pasta: 'مكرونة',
+                sandwich: 'ساندويتش',
+                fries: 'بطاطس مقلية',
+                cake: 'كيك',
+                dessert: 'حلويات',
+                tea: 'شاي',
+                coffee: 'قهوة',
+                chickenrice: 'دجاج مع أرز',
+                karak: 'كرك',
+                kebab: 'كباب',
+                shawarma: 'شاورما',
+                pizza: 'بيتزا',
+                hummus: 'حمص',
+                falafel: 'فلافل'
+            };
+            const transliteration = {
+                a: 'ا', b: 'ب', c: 'ك', d: 'د', e: 'ي', f: 'ف', g: 'ج', h: 'ه', i: 'ي', j: 'ج', k: 'ك', l: 'ل', m: 'م', n: 'ن', o: 'و', p: 'ب', q: 'ق', r: 'ر', s: 'س', t: 'ت', u: 'و', v: 'ف', w: 'و', x: 'كس', y: 'ي', z: 'ز'
+            };
+            if (!name.trim()) return '';
+            return name
+                .split(/\s+/)
+                .map(word => {
+                    const lowerWord = word.toLowerCase();
+                    if (dictionary[lowerWord]) {
+                        return dictionary[lowerWord];
+                    }
+                    return lowerWord
+                        .split('')
+                        .map(ch => transliteration[ch] || ch)
+                        .join('');
+                })
+                .join(' ');
+        }
+
+        function scheduleArabicTranslation() {
+            clearTimeout(translationTimeout);
+            translationTimeout = setTimeout(() => {
+                try {
+                    // Only overwrite if user hasn't confirmed a manual translation
+                    if (foodArabicNameInput && foodArabicNameInput.dataset && foodArabicNameInput.dataset.confirmed !== 'true') {
+                        foodArabicNameInput.value = translateFoodNameToArabic(foodNameInput.value);
+                    }
+                } catch (e) {
+                    console.warn('Translation assignment failed', e);
+                }
+            }, 300);
+        }
+
+        foodNameInput.addEventListener('input', scheduleArabicTranslation);
+
+        // Edit/Confirm handlers for Arabic name
+        const editFoodArabicBtn = document.getElementById('edit-food-arabic');
+        const confirmFoodArabicBtn = document.getElementById('confirm-food-arabic');
+        const foodArabicHint = document.getElementById('food-arabic-hint');
+        if (editFoodArabicBtn && confirmFoodArabicBtn && foodArabicNameInput) {
+            editFoodArabicBtn.addEventListener('click', () => {
+                foodArabicNameInput.readOnly = false;
+                foodArabicNameInput.focus();
+                editFoodArabicBtn.classList.add('d-none');
+                confirmFoodArabicBtn.classList.remove('d-none');
+                foodArabicNameInput.dataset.confirmed = 'false';
+                if (foodArabicHint) foodArabicHint.textContent = 'Editing — press Confirm to save.';
+            });
+
+            confirmFoodArabicBtn.addEventListener('click', () => {
+                foodArabicNameInput.readOnly = true;
+                editFoodArabicBtn.classList.remove('d-none');
+                confirmFoodArabicBtn.classList.add('d-none');
+                foodArabicNameInput.dataset.confirmed = 'true';
+                if (foodArabicHint) foodArabicHint.textContent = 'Translation confirmed.';
+            });
+        }
+
+        function updateAdminAccess() {
+            const canManageAdmins = isMainAdmin();
+            if (manageAdminsSection) {
+                manageAdminsSection.classList.add('d-none');
+            }
+            if (adminOptions) {
+                const manageOption = Array.from(adminOptions.options).find(option => option.value === 'manage-admins');
+                if (manageOption) {
+                    manageOption.hidden = !canManageAdmins;
+                }
+                if (!canManageAdmins && adminOptions.value === 'manage-admins') {
+                    adminOptions.value = 'menu';
+                }
+            }
+            if (!canManageAdmins && userForm) {
+                userForm.querySelector('button[type="submit"]').disabled = true;
+            }
+        }
+
+        function setAuthStatus(message, visible = true) {
+            if (!authStatus || !authStatusText) return;
+            authStatusText.textContent = message || 'Signing in...';
+            authStatus.classList.toggle('d-none', !visible);
+            if (authSubmit) {
+                authSubmit.disabled = visible;
+            }
+        }
+
+        function setSessionStatus(message, visible = true) {
+            if (!sessionStatus || !sessionStatusText) return;
+            sessionStatusText.textContent = message || 'Signing out...';
+            sessionStatus.classList.toggle('d-none', !visible);
+        }
+
+        async function showAdminPanel() {
+            setAuthStatus('', false);
+            setSessionStatus('', false);
+            authScreen.classList.add('d-none');
+            adminPanel.classList.remove('d-none');
+            sessionStorage.setItem('adminLoggedIn', 'true');
+            if (adminUser) {
+                sessionStorage.setItem('currentAdminUser', JSON.stringify(adminUser));
+                currentUserBadge.textContent = `Signed in as ${adminUser.username}`;
+            } else {
+                currentUserBadge.textContent = 'Signed in';
+            }
+            updateAdminAccess();
+            renderCategories();
+            renderFoods();
+            renderUsers();
+            await loadMenuFromSupabase();
+            renderCategories();
+            renderFoods();
+        }
+
+        function showAuthScreen() {
+            setAuthStatus('', false);
+            setSessionStatus('', false);
+            authScreen.classList.remove('d-none');
+            adminPanel.classList.add('d-none');
+            sessionStorage.removeItem('adminLoggedIn');
+            sessionStorage.removeItem('currentAdminUser');
+            adminUser = null;
+            currentUserBadge.textContent = 'Not signed in';
+        }
+
+        function updateAuthMode() {
+            authTitle.textContent = 'Admin Login';
+            authMessage.textContent = 'Enter your Supabase Auth username/email and password to continue.';
+            authSubmit.textContent = 'Login';
+            authConfirmGroup.classList.add('d-none');
+            clearAuthForm();
+        }
+
+        function setAuthMode() {
+            updateAuthMode();
+        }
+
+        // Sync button removed: data is stored in localStorage and loads automatically on refresh.
+
+        authForm.addEventListener('submit', async event => {
+            event.preventDefault();
+            const username = authUsername.value.trim();
+            const password = authPassword.value;
+            if (!username || !password) { alert('Please enter both username and password.'); return; }
+            setAuthStatus('Signing in...', true);
+            try {
+                // The existing username field is retained for UI compatibility.
+                // Supabase Auth accounts are created with: username@karakstation.local
+                const email = username.includes('@') ? username : `${username.toLowerCase()}@karakstation.local`;
+                await KarakDB.signIn(email, password);
+                const profile = await KarakDB.adminProfile();
+                if (!profile) throw new Error('This account is not registered as a Karak Station admin. Add its user id to admin_profiles in Supabase.');
+                adminUser = { username: profile.username, role: profile.role };
+                adminLoggedIn = true;
+                showAdminPanel();
+            } catch (error) {
+                setAuthStatus('', false);
+                alert(error.message || 'Invalid username or password.');
+            }
+        });
+
+        adminOptions.addEventListener('change', () => {
+            const value = adminOptions.value;
+            if (value === 'special-poster') {
+                sessionStorage.setItem('adminLoggedIn', 'true');
+                if (adminUser) {
+                    sessionStorage.setItem('currentAdminUser', JSON.stringify(adminUser));
+                }
+                sessionStorage.setItem('adminInternalNav', Date.now().toString());
+                window.location.href = 'special-poster.html';
+            } else if (value === 'blog-manager') {
+                sessionStorage.setItem('adminLoggedIn', 'true');
+                if (adminUser) {
+                    sessionStorage.setItem('currentAdminUser', JSON.stringify(adminUser));
+                }
+                sessionStorage.setItem('adminInternalNav', Date.now().toString());
+                window.location.href = 'blog.html';
+            } else if (value === 'manage-orders') {
+                sessionStorage.setItem('adminInternalNav', Date.now().toString());
+                if (adminUser) {
+                    sessionStorage.setItem('currentAdminUser', JSON.stringify(adminUser));
+                }
+                window.location.href = 'manage-orders-v4.html';
+            } else if (value === 'home') {
+                sessionStorage.setItem('adminInternalNav', Date.now().toString());
+                window.location.href = '../index.html';
+            } else if (value === 'menu') {
+                sessionStorage.setItem('adminInternalNav', Date.now().toString());
+                window.location.href = '../menu.html';
+            } else if (value === 'logout') {
+                setSessionStatus('Signing out...', true);
+                window.setTimeout(() => {
+                    KarakDB.signOut().catch(console.error).finally(() => { showAuthScreen(); setAuthMode(); setSessionStatus('', false); });
+                }, 600);
+            } else if (value === 'manage-admins') {
+                document.getElementById('manage-admins-section').scrollIntoView({ behavior: 'smooth' });
+            }
+            adminOptions.value = 'manage-admins';
+        });
+
+        userForm.addEventListener('submit', event => {
+            event.preventDefault();
+            if (!isMainAdmin()) {
+                alert('Only the main admin can manage admin accounts.');
+                return;
+            }
+            const username = userUsernameInput.value.trim();
+            const password = userPasswordInput.value;
+            const confirm = userConfirmInput.value;
+
+            if (!username || !password) {
+                alert('Please enter both username and password.');
+                return;
+            }
+            if (password !== confirm) {
+                alert('Passwords do not match.');
+                return;
+            }
+
+            if (currentEditingAdmin) {
+                const result = updateUser(currentEditingAdmin, username, password);
+                if (!result.success) {
+                    alert(result.message);
+                    return;
+                }
+                currentEditingAdmin = null;
+                userForm.reset();
+                document.querySelector('#user-form button[type="submit"]').textContent = 'Add Admin';
+                renderUsers();
+                alert(`User ${username} updated successfully.`);
+                return;
+            }
+
+            const result = saveUser(username, password);
+            if (!result.success) {
+                alert(result.message);
+                return;
+            }
+
+            userForm.reset();
+            renderUsers();
+            alert(`User ${username} created successfully.`);
+        });
+
+        updateAuthMode();
+        if (adminLoggedIn) {
+            showAdminPanel();
+        } else {
+            setAuthMode();
+        }
+
+        function getBlogPostCount() {
+            try {
+                const posts = JSON.parse(localStorage.getItem('blogPosts') || '[]');
+                return Array.isArray(posts) ? posts.length : 0;
+            } catch (error) {
+                return 0;
+            }
+        }
+
+        function getSpecialPosterCount() {
+            try {
+                const foods = JSON.parse(localStorage.getItem('specialPosterFoods') || '[]');
+                return Array.isArray(foods) ? foods.length : 0;
+            } catch (error) {
+                return 0;
+            }
+        }
+
+        function getWhatsAppOrderCount() {
+            try {
+                return parseInt(localStorage.getItem('whatsappOrderCount') || '0', 10) || 0;
+            } catch (error) {
+                return 0;
+            }
+        }
+
+        function getSpecialPosterOrderCount() {
+            try {
+                return parseInt(localStorage.getItem('specialPosterWhatsAppOrderCount') || '0', 10) || 0;
+            } catch (error) {
+                return 0;
+            }
+        }
+
+        function renderDashboard() {
+            const foodCount = document.getElementById('dashboard-food-count');
+            const availableFoodCount = document.getElementById('dashboard-available-food-count');
+            const categoryCount = document.getElementById('dashboard-category-count');
+            const blogCount = document.getElementById('dashboard-blog-count');
+            const posterCount = document.getElementById('dashboard-poster-count');
+            const posterOrderCount = document.getElementById('dashboard-specialposter-order-count');
+            const orderCount = document.getElementById('dashboard-order-count');
+
+            if (foodCount) foodCount.textContent = foods.length;
+            if (availableFoodCount) availableFoodCount.textContent = foods.filter(item => item.status !== 'unavailable').length;
+            if (categoryCount) categoryCount.textContent = categories.length;
+            if (blogCount) blogCount.textContent = getBlogPostCount();
+            if (posterCount) posterCount.textContent = getSpecialPosterCount();
+            if (posterOrderCount) posterOrderCount.textContent = getSpecialPosterOrderCount();
+            if (orderCount) orderCount.textContent = getWhatsAppOrderCount();
+        }
+
+        function renderCategories() {
+            categoryList.innerHTML = '';
+            foodCategorySelect.innerHTML = '<option value="">Select category</option>';
+            categories.forEach((category, index) => {
+                const chip = document.createElement('div');
+                chip.className = 'category-chip';
+                chip.innerHTML = `<span>${category}</span><button type="button" data-index="${index}">&times;</button>`;
+                categoryList.appendChild(chip);
+                const option = document.createElement('option');
+                option.value = category;
+                option.textContent = category;
+                foodCategorySelect.appendChild(option);
+            });
+        }
+
+        function editAdmin(username) {
+            if (!confirm(`Edit admin account "${username}"? Any unsaved changes will be replaced.`)) return;
+            const user = findUser(username);
+            if (!user) return;
+            currentEditingAdmin = user.username;
+            userUsernameInput.value = user.username;
+            userPasswordInput.value = '';
+            userConfirmInput.value = '';
+            document.querySelector('#user-form button[type="submit"]').textContent = 'Update Admin';
+        }
+
+        function deleteAdmin(username) {
+            if (!isMainAdmin()) return;
+            if (username === 'RASHID313') {
+                alert('Cannot delete the main admin account.');
+                return;
+            }
+            if (!confirm(`Remove admin ${username}?`)) return;
+            adminUsers = adminUsers.filter(user => user.username.toLowerCase() !== username.toLowerCase());
+            saveUsers();
+            renderUsers();
+        }
+
+        function renderUsers() {
+            userList.innerHTML = '';
+            if (!isMainAdmin()) {
+                userList.innerHTML = '<p class="text-muted mb-0">Only the main admin can view or manage admin accounts.</p>';
+                return;
+            }
+            if (adminUsers.length === 0) {
+                userList.innerHTML = '<p class="text-muted mb-0">No admins added yet.</p>';
+                return;
+            }
+
+            const userItems = adminUsers.map(user => {
+                const isCurrentUser = adminUser && adminUser.username === user.username;
+                const actions = `
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-primary btn-small" onclick="editAdmin('${user.username}')">Edit</button>
+                        ${user.username === 'RASHID313' ? '' : `<button type="button" class="btn btn-outline-danger btn-small" onclick="deleteAdmin('${user.username}')">Delete</button>`}
+                    </div>
+                `;
+                return `
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <span>${user.username}</span>
+                            <div class="text-muted small">${isCurrentUser ? 'Current admin' : 'Admin'}</div>
+                        </div>
+                        ${actions}
+                    </li>`;
+            }).join('');
+
+            userList.innerHTML = `
+                <div class="border rounded p-3 bg-light">
+                    <h6 class="mb-2">Saved Admin Accounts</h6>
+                    <ul class="list-group">${userItems}</ul>
+                </div>`;
+        }
+
+        function renderFoods() {
+            if (foods.length === 0) {
+                foodList.innerHTML = '<p class="text-muted">No food items added yet.</p>';
+                renderDashboard();
+                return;
+            }
+            foodList.innerHTML = foods.map(food => {
+                const imageUrl = food.image || 'https://scontent.fcjb3-4.fna.fbcdn.net/v/t39.30808-1/714840124_122096015613356445_2050879761889922079_n.jpg?stp=c174.62.769.769a_dst-jpg_tt6&cstp=mx769x769&ctp=s200x200&_nc_cat=101&ccb=1-7&_nc_sid=2d3e12&_nc_ohc=5xShbNou5p0Q7kNvwE6_Zdy&_nc_oc=Ado-0tm4xXnqc8GfFmmQ7NNXDxGq-qy7Gf8bjZxNIjO3sNe1CcFf0cvqf3QZzVE3ybVLmP23UceOO9jIpn5Day3p&_nc_zt=24&_nc_ht=scontent.fcjb3-4.fna&_nc_gid=c97UsFo3mIfv63W42J45Gw&_nc_ss=7b2a8&oh=00_AQC-fMdy-oVB_AShr1-820_ZeKmvfGeczbSiGs1rOK_VRg&oe=6A4B23ED';
+                const statusLabel = food.status === 'unavailable' ? 'Unavailable' : 'Available';
+                return `
+                    <div class="food-item-card" data-id="${food.id}">
+                        <img src="${imageUrl}" alt="${food.name}">
+                        <div class="food-item-card-body">
+                            <h3>${food.name}</h3>
+                            ${food.arabicName ? `<p class="arabic-name">${food.arabicName}</p>` : ''}
+                            <p>${food.description || 'No description available.'}</p>
+                            <div class="food-meta">
+                                <span>Price: ${food.amount}</span>
+                                <span>Category: ${food.category || 'None'}</span>
+                                <span>Status: ${statusLabel}</span>
+                            </div>
+                        </div>
+                        <div class="food-actions">
+                            <button type="button" class="btn btn-outline-primary btn-small" data-action="edit" data-id="${food.id}">Edit</button>
+                            <button type="button" class="btn btn-outline-danger btn-small" data-action="delete" data-id="${food.id}">Delete</button>
+                        </div>
+                    </div>`;
+            }).join('');
+            renderDashboard();
+        }
+
+        function setForm(food = null) {
+            if (!food) {
+                foodIdInput.value = '';
+                foodNameInput.value = '';
+                foodArabicNameInput.value = '';
+                foodArabicNameInput.dataset.confirmed = 'false';
+                const editBtn = document.getElementById('edit-food-arabic');
+                const confirmBtn = document.getElementById('confirm-food-arabic');
+                const hint = document.getElementById('food-arabic-hint');
+                if (editBtn) editBtn.classList.remove('d-none');
+                if (confirmBtn) confirmBtn.classList.add('d-none');
+                if (hint) hint.textContent = 'Auto-generated — click Edit to correct, then Confirm.';
+                foodAmountInput.value = '';
+                foodCategorySelect.value = '';
+                foodDescriptionInput.value = '';
+                foodStatusSelect.value = 'available';
+                document.getElementById('food-submit').textContent = 'Save Food';
+                return;
+            }
+            foodIdInput.value = food.id;
+            foodNameInput.value = food.name;
+            foodArabicNameInput.value = food.arabicName || '';
+            // restore confirmed state for arabic name
+            try {
+                const editBtn = document.getElementById('edit-food-arabic');
+                const confirmBtn = document.getElementById('confirm-food-arabic');
+                const hint = document.getElementById('food-arabic-hint');
+                const confirmed = !!food.arabicConfirmed;
+                foodArabicNameInput.dataset.confirmed = confirmed ? 'true' : 'false';
+                foodArabicNameInput.readOnly = true;
+                if (confirmed) {
+                    if (editBtn) editBtn.classList.remove('d-none');
+                    if (confirmBtn) confirmBtn.classList.add('d-none');
+                    if (hint) hint.textContent = 'Translation confirmed.';
+                } else {
+                    if (editBtn) editBtn.classList.remove('d-none');
+                    if (confirmBtn) confirmBtn.classList.add('d-none');
+                    if (hint) hint.textContent = 'Auto-generated — click Edit to correct, then Confirm.';
+                }
+            } catch (e) {}
+            foodAmountInput.value = food.amount;
+            foodImageInput.value = food.image || '';
+            try {
+                if (food && food.image) {
+                    foodImagePreview.src = food.image;
+                    foodImagePreview.style.display = 'inline-block';
+                } else {
+                    foodImagePreview.src = '';
+                    foodImagePreview.style.display = 'none';
+                }
+            } catch (e) {}
+            foodCategorySelect.value = food.category;
+            foodDescriptionInput.value = food.description;
+            foodStatusSelect.value = food.status;
+            document.getElementById('food-submit').textContent = 'Update Food';
+        }
+
+        categoryForm.addEventListener('submit', event => {
+            event.preventDefault();
+            const value = categoryNameInput.value.trim();
+            if (!value) return;
+            if (!categories.includes(value)) {
+                categories.push(value);
+                saveState();
+                renderCategories();
+            }
+            categoryNameInput.value = '';
+        });
+
+        categoryList.addEventListener('click', event => {
+            if (!event.target.matches('button')) return;
+            const index = Number(event.target.dataset.index);
+            const removedCategory = categories[index];
+            const inUse = foods.some(food => food.category === removedCategory);
+            if (inUse) {
+                alert(`Cannot delete category "${removedCategory}" because it is still assigned to one or more food items.`);
+                return;
+            }
+            if (!confirm(`Delete category "${removedCategory}"?`)) return;
+            categories.splice(index, 1);
+            saveState();
+            renderCategories();
+            renderFoods();
+        });
+
+        foodForm.addEventListener('submit', event => {
+            event.preventDefault();
+            const id = foodIdInput.value || Date.now().toString();
+            const defaultImageUrl = 'https://scontent.fcjb3-4.fna.fbcdn.net/v/t39.30808-1/714840124_122096015613356445_2050879761889922079_n.jpg?stp=c174.62.769.769a_dst-jpg_tt6&cstp=mx769x769&ctp=s200x200&_nc_cat=101&ccb=1-7&_nc_sid=2d3e12&_nc_ohc=5xShbNou5p0Q7kNvwE6_Zdy&_nc_oc=Ado-0tm4xXnqc8GfFmmQ7NNXDxGq-qy7Gf8bjZxNIjO3sNe1CcFf0cvqf3QZzVE3ybVLmP23UceOO9jIpn5Day3p&_nc_zt=24&_nc_ht=scontent.fcjb3-4.fna&_nc_gid=c97UsFo3mIfv63W42J45Gw&_nc_ss=7b2a8&oh=00_AQC-fMdy-oVB_AShr1-820_ZeKmvfGeczbSiGs1rOK_VRg&oe=6A4B23ED';
+            const foodItem = {
+                id,
+                name: foodNameInput.value.trim(),
+                arabicName: foodArabicNameInput.value.trim(),
+                arabicConfirmed: foodArabicNameInput.dataset && foodArabicNameInput.dataset.confirmed === 'true',
+                amount: foodAmountInput.value.trim(),
+                image: foodImageInput.value.trim() || defaultImageUrl,
+                category: foodCategorySelect.value,
+                description: foodDescriptionInput.value.trim(),
+                status: foodStatusSelect.value
+            };
+            if (!foodItem.name || !foodItem.amount) return;
+            const existingIndex = foods.findIndex(item => item.id === id);
+            if (existingIndex >= 0) {
+                foods[existingIndex] = foodItem;
+            } else {
+                foods.push(foodItem);
+            }
+            saveState();
+            renderFoods();
+            setForm();
+            // clear file input after save
+            try { foodImageFileInput.value = ''; } catch (e) {}
+        });
+
+        // When a file is selected, read it as a Data URL and set the text input to that value
+        if (foodImageFileInput) {
+            foodImageFileInput.addEventListener('change', event => {
+                const [file] = event.target.files || [];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = e => {
+                    const dataUrl = e.target.result;
+                    foodImageInput.value = dataUrl;
+                    try {
+                        foodImagePreview.src = dataUrl;
+                        foodImagePreview.style.display = 'inline-block';
+                    } catch (err) {}
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Update preview when URL is manually entered
+        if (foodImageInput) {
+            foodImageInput.addEventListener('input', () => {
+                const val = foodImageInput.value.trim();
+                if (!val) {
+                    foodImagePreview.style.display = 'none';
+                    foodImagePreview.src = '';
+                    return;
+                }
+                foodImagePreview.src = val;
+                foodImagePreview.style.display = 'inline-block';
+            });
+        }
+
+        foodList.addEventListener('click', event => {
+            const action = event.target.dataset.action;
+            const id = event.target.dataset.id;
+            if (!action || !id) return;
+            if (action === 'edit') {
+                const food = foods.find(item => item.id === id);
+                if (food) {
+                    if (!confirm(`Edit food item "${food.name}"? Any unsaved form changes will be replaced.`)) return;
+                    setForm(food);
+                }
+            }
+            if (action === 'delete') {
+                const food = foods.find(item => item.id === id);
+                if (!food || !confirm(`Delete food item "${food.name}"? This cannot be undone.`)) return;
+                foods = foods.filter(item => item.id !== id);
+                saveState();
+                renderFoods();
+                if (foodIdInput.value === id) setForm();
+            }
+        });
+
+        foodResetButton.addEventListener('click', () => setForm());
+        exportFoodsButton.addEventListener('click', () => downloadFoodsJson());
+        importFoodsButton.addEventListener('click', () => importFoodsFile.click());
+        importFoodsFile.addEventListener('change', event => {
+            if (event.target.files && event.target.files[0]) {
+                importFoodsJson(event.target.files[0]);
+            }
+            event.target.value = '';
+        });
+        if (saveImportedDataButton) {
+            saveImportedDataButton.addEventListener('click', () => {
+                saveState();
+                alert('Imported food data saved successfully.');
+            });
+        }
+
+        // Scan PDF/Image to prefill food form or bulk-scan using OCR provider
+        scanFoodsButton.addEventListener('click', () => scanFileInput.click());
+        scanFileInput.addEventListener('change', event => {
+            const files = Array.from(event.target.files || []);
+            if (files.length) {
+                bulkScanFiles(files);
+            }
+            event.target.value = '';
+        });
+
+        // OCR provider selection removed; no runtime handling needed
+
+        async function processScannedFile(file) {
+            try {
+                showTemporaryMessage('Processing scan — this may take a few seconds');
+                // Use client-side OCR by default (Tesseract) — server/API based provider removed
+
+                if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+                    const arrayBuffer = await file.arrayBuffer();
+                    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js';
+                    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                    const results = [];
+                    for (let p=1; p<=pdf.numPages; p++) {
+                        const page = await pdf.getPage(p);
+                        const viewport = page.getViewport({ scale: 2 });
+                        const canvas = document.createElement('canvas');
+                        canvas.width = viewport.width;
+                        canvas.height = viewport.height;
+                        const ctx = canvas.getContext('2d');
+                        await page.render({ canvasContext: ctx, viewport }).promise;
+                        const parsed = await recognizeCanvasAndParse(canvas);
+                        results.push(parsed);
+                    }
+                    return results;
+                } else {
+                    const dataUrl = await readFileAsDataURL(file);
+                    const img = new Image();
+                    img.src = dataUrl;
+                    await new Promise((res, rej) => { img.onload = res; img.onerror = rej; });
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.naturalWidth;
+                    canvas.height = img.naturalHeight;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
+                    const parsed = await recognizeCanvasAndParse(canvas);
+                    return parsed;
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Scan/recognition failed: ' + (err && err.message ? err.message : err));
+            } finally {
+                hideTemporaryMessage();
+            }
+        }
+
+        function readFileAsDataURL(file) {
+            return new Promise((resolve, reject) => {
+                const r = new FileReader();
+                r.onload = () => resolve(r.result);
+                r.onerror = reject;
+                r.readAsDataURL(file);
+            });
+        }
+
+        async function ocrSpaceParse(file) {
+            const apiKey = (ocrApiKeyInput && ocrApiKeyInput.value) ? ocrApiKeyInput.value.trim() : '';
+            if (!apiKey) throw new Error('OCR.Space API key required');
+            const form = new FormData();
+            form.append('apikey', apiKey);
+            form.append('language', 'eng');
+            form.append('isOverlayRequired', 'false');
+            form.append('file', file);
+            const res = await fetch('https://api.ocr.space/parse/image', { method: 'POST', body: form });
+            if (!res.ok) throw new Error('OCR API request failed: ' + res.status);
+            const json = await res.json();
+            if (json && json.ParsedResults && json.ParsedResults.length) {
+                return json.ParsedResults.map(r => r.ParsedText).join('\n');
+            }
+            return '';
+        }
+
+        async function recognizeCanvasAndParse(canvas) {
+            // return parsed object using Tesseract or fallback
+            try {
+                let text = '';
+                if (window.Tesseract && typeof Tesseract.recognize === 'function') {
+                    const result = await Tesseract.recognize(canvas, 'eng');
+                    text = (result && result.data && result.data.text) ? result.data.text : '';
+                } else if (window.Tesseract && typeof Tesseract.createWorker === 'function') {
+                    const worker = Tesseract.createWorker();
+                    await worker.load();
+                    await worker.loadLanguage('eng');
+                    await worker.initialize('eng');
+                    const res = await worker.recognize(canvas);
+                    text = (res && res.data && res.data.text) ? res.data.text : '';
+                    await worker.terminate();
+                } else {
+                    throw new Error('No OCR available');
+                }
+                return parseFoodText(text || '');
+            } catch (err) {
+                console.error('recognizeCanvasAndParse error', err);
+                return null;
+            }
+        }
+
+        async function recognizeCanvasAndFill(canvas) {
+            try {
+                // Try the simpler recognize API which works across CDN builds
+                let text = '';
+                if (window.Tesseract && typeof Tesseract.recognize === 'function') {
+                    const result = await Tesseract.recognize(canvas, 'eng', { logger: m => console.log(m) });
+                    text = (result && result.data && result.data.text) ? result.data.text : '';
+                } else if (window.Tesseract && typeof Tesseract.createWorker === 'function') {
+                    // fallback to worker API if available
+                    const worker = Tesseract.createWorker();
+                    await worker.load();
+                    await worker.loadLanguage('eng');
+                    await worker.initialize('eng');
+                    const res = await worker.recognize(canvas);
+                    text = (res && res.data && res.data.text) ? res.data.text : '';
+                    await worker.terminate();
+                } else {
+                    throw new Error('Tesseract API not available in this build.');
+                }
+
+                const parsed = parseFoodText(text);
+                if (parsed) {
+                    foodNameInput.value = parsed.name || '';
+                    foodArabicNameInput.value = parsed.arabic || '';
+                    foodAmountInput.value = parsed.price || '';
+                    foodDescriptionInput.value = parsed.description || '';
+                    if (parsed.category) {
+                        if (!categories.includes(parsed.category)) categories.push(parsed.category);
+                        renderCategories();
+                        foodCategorySelect.value = parsed.category;
+                    }
+                    alert('Scanned content filled into the form. Review and save.');
+                } else {
+                    alert('No usable food details were detected in the scanned file.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('OCR failed: ' + (err && err.message ? err.message : err));
+            }
+        }
+
+        function parseFoodText(text) {
+            if (!text) return null;
+            const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+            if (!lines.length) return null;
+            const name = lines[0];
+            // find price
+            let price = '';
+            for (const line of lines) {
+                let m = line.match(/QR\s*([\d,.]+)/i);
+                if (!m) m = line.match(/(\d+[.,]?\d{0,2})/);
+                if (m) { price = m[1] || m[0]; break; }
+            }
+            const descLines = lines.slice(1).filter(l => !/QR\s*\d|^\d+[.,]?\d*/i.test(l) && l.length > 3);
+            const description = descLines.join(' ');
+            let category = '';
+            for (const cat of categories) {
+                if (cat && text.toLowerCase().includes(cat.toLowerCase())) { category = cat; break; }
+            }
+            return { name, price, description, category, arabic: '' };
+        }
+
+        // Bulk scan flow and modal UI
+        let scannedItems = [];
+        function createScanModal() {
+            if (document.getElementById('scan-modal')) return;
+            const modal = document.createElement('div');
+            modal.id = 'scan-modal';
+            modal.className = 'scan-modal hidden';
+            modal.innerHTML = `
+                <div class="scan-modal-content">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h4 class="mb-0">Scanned Items</h4>
+                        <div class="d-flex gap-2">
+                            <button id="scan-approve-all" class="btn btn-primary btn-small">Approve All</button>
+                            <button id="scan-discard-all" class="btn btn-outline-danger btn-small">Discard All</button>
+                            <button id="scan-close" class="btn btn-secondary btn-small">Close</button>
+                        </div>
+                    </div>
+                    <div id="scan-items-list"></div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            document.getElementById('scan-close').addEventListener('click', closeScanModal);
+            document.getElementById('scan-discard-all').addEventListener('click', () => { scannedItems = []; renderScannedItems(); closeScanModal(); });
+            document.getElementById('scan-approve-all').addEventListener('click', approveScannedItems);
+        }
+
+        function openScanModal() { createScanModal(); document.getElementById('scan-modal').classList.remove('hidden'); renderScannedItems(); }
+        function closeScanModal() { const m = document.getElementById('scan-modal'); if (m) m.classList.add('hidden'); }
+
+        function renderScannedItems() {
+            const list = document.getElementById('scan-items-list');
+            if (!list) return;
+            list.innerHTML = '';
+            if (!scannedItems || scannedItems.length === 0) {
+                list.innerHTML = '<p class="text-muted">No scanned items.</p>';
+                return;
+            }
+            scannedItems.forEach((item, idx) => {
+                const div = document.createElement('div');
+                div.className = 'scan-item';
+                div.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div style="flex:1; min-width:0">
+                            <input class="form-control mb-1 scan-name" data-idx="${idx}" value="${escapeHtml(item.name||'')}" />
+                            <div class="d-flex gap-2 mb-1">
+                                <input class="form-control form-control-sm scan-price" data-idx="${idx}" value="${escapeHtml(item.price||'')}" style="max-width:160px" />
+                                <input class="form-control form-control-sm scan-category" data-idx="${idx}" value="${escapeHtml(item.category||'')}" style="max-width:220px" />
+                            </div>
+                            <textarea class="form-control mb-1 scan-desc" data-idx="${idx}" rows="2">${escapeHtml(item.description||'')}</textarea>
+                        </div>
+                        <div class="controls ms-3">
+                            <button class="btn btn-primary btn-small save-scan" data-idx="${idx}">Save</button>
+                            <button class="btn btn-outline-danger btn-small remove-scan" data-idx="${idx}">Remove</button>
+                        </div>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+            // wire events
+            Array.from(document.getElementsByClassName('save-scan')).forEach(btn => btn.addEventListener('click', e => {
+                const i = Number(e.currentTarget.dataset.idx);
+                saveScannedItem(i);
+            }));
+            Array.from(document.getElementsByClassName('remove-scan')).forEach(btn => btn.addEventListener('click', e => {
+                const i = Number(e.currentTarget.dataset.idx);
+                scannedItems.splice(i,1); renderScannedItems();
+            }));
+        }
+
+        function saveScannedItem(index) {
+            const nameEl = document.querySelector(`.scan-name[data-idx="${index}"]`);
+            const priceEl = document.querySelector(`.scan-price[data-idx="${index}"]`);
+            const catEl = document.querySelector(`.scan-category[data-idx="${index}"]`);
+            const descEl = document.querySelector(`.scan-desc[data-idx="${index}"]`);
+            if (!nameEl) return;
+            const item = scannedItems[index];
+            item.name = nameEl.value.trim();
+            item.price = priceEl ? priceEl.value.trim() : '';
+            item.category = catEl ? catEl.value.trim() : '';
+            item.description = descEl ? descEl.value.trim() : '';
+            // save into foods array
+            const id = Date.now().toString() + Math.random().toString(36).slice(2);
+            const food = { id, name: item.name, amount: item.price, image: item.image || '', category: item.category, description: item.description, status: 'available' };
+            foods.push(food);
+            saveState();
+            renderFoods();
+            scannedItems.splice(index,1);
+            renderScannedItems();
+        }
+
+        function approveScannedItems() {
+            // Save all scanned items into foods
+            scannedItems.forEach(item => {
+                const id = Date.now().toString() + Math.random().toString(36).slice(2);
+                const food = { id, name: item.name || '', amount: item.price || '', image: item.image || '', category: item.category || '', description: item.description || '', status: 'available' };
+                foods.push(food);
+            });
+            saveState(); renderFoods(); scannedItems = []; renderScannedItems(); closeScanModal();
+            alert('All scanned items saved.');
+        }
+
+        function escapeHtml(str) { if (!str) return ''; return String(str).replace(/[&<>"']/g, s=>'&#'+s.charCodeAt(0)+';'); }
+
+        async function bulkScanFiles(files) {
+            scannedItems = [];
+            showTemporaryMessage('Scanning files...');
+            for (const file of files) {
+                try {
+                    const result = await processScannedFile(file);
+                    if (Array.isArray(result)) {
+                        for (const r of result) if (r) scannedItems.push(r);
+                    } else if (result) scannedItems.push(result);
+                } catch (err) {
+                    console.error('file scan error', err);
+                }
+            }
+            hideTemporaryMessage();
+            if (scannedItems.length) openScanModal(); else alert('No items detected.');
+        }
+
+        // lightweight temporary message UI
+        let __tempMsg;
+        function showTemporaryMessage(msg) {
+            if (__tempMsg) __tempMsg.remove();
+            __tempMsg = document.createElement('div');
+            __tempMsg.textContent = msg;
+            __tempMsg.style.position = 'fixed';
+            __tempMsg.style.right = '16px';
+            __tempMsg.style.top = '16px';
+            __tempMsg.style.padding = '10px 14px';
+            __tempMsg.style.background = 'rgba(0,0,0,0.7)';
+            __tempMsg.style.color = '#fff';
+            __tempMsg.style.borderRadius = '8px';
+            document.body.appendChild(__tempMsg);
+        }
+        function hideTemporaryMessage() { if (__tempMsg) { __tempMsg.remove(); __tempMsg = null; } }
+
+        renderCategories();
+        renderFoods();
+        renderUsers();
+        renderDashboard();
+        window.addEventListener('storage', () => renderDashboard());
+    </script>
+</body>
+</html>

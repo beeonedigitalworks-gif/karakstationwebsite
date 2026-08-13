@@ -1,0 +1,1247 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <script src="../js/supabase-config.js"></script>
+    <script src="../js/supabase-client.js"></script>
+    <script src="../js/karak-data.js"></script>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Orders</title>
+    <link rel="stylesheet" href="../css/bootstrap.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        :root {
+            --admin-bg: #060816;
+            --admin-panel: linear-gradient(145deg, rgba(15, 23, 42, 0.97), rgba(17, 24, 39, 0.95));
+            --admin-border: rgba(148, 163, 184, 0.22);
+            --admin-text: #f8fafc;
+            --admin-muted: #94a3b8;
+            --admin-accent: #ef4444;
+            --admin-shadow: 0 24px 70px rgba(2, 6, 23, 0.42);
+        }
+        body {
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: radial-gradient(circle at top left, rgba(239, 68, 68, 0.22), transparent 28%), linear-gradient(145deg, #020617 0%, #0f172a 45%, #111827 100%);
+            color: var(--admin-text);
+            letter-spacing: 0.01em;
+        }
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 30px 18px 60px;
+        }
+        .admin-card {
+            background: var(--admin-panel);
+            border: 1px solid var(--admin-border);
+            border-radius: 28px;
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: var(--admin-shadow);
+            position: relative;
+            overflow: hidden;
+        }
+        .admin-card::before {
+            content: '';
+            position: absolute;
+            inset: 0 0 auto 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--admin-accent), transparent 70%);
+        }
+        .admin-header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 18px;
+            align-items: center;
+            padding: 30px 32px;
+            background: linear-gradient(145deg, rgba(15, 23, 42, 0.98), rgba(17, 24, 39, 0.95));
+            border-radius: 28px;
+            border: 1px solid var(--admin-border);
+            margin-bottom: 24px;
+            box-shadow: var(--admin-shadow);
+        }
+        .admin-header h1 {
+            margin: 0;
+            font-size: 32px;
+            color: #fff;
+        }
+        .admin-header p {
+            margin: 8px 0 0;
+            color: #94a3b8;
+            max-width: 640px;
+        }
+        .form-label {
+            font-weight: 700;
+            color: #e2e8f0;
+        }
+        .form-control,
+        .form-select {
+            background: rgba(15, 23, 42, 0.92);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 14px;
+            color: #e2e8f0;
+            box-shadow: inset 0 2px 12px rgba(15, 23, 42, 0.4);
+        }
+        .form-control::placeholder {
+            color: #94a3b8;
+        }
+        .btn,
+        .btn-primary,
+        .btn-success,
+        .btn-outline-primary,
+        .btn-outline-danger,
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 46px;
+            padding: 11px 18px;
+            font-size: 14px;
+            font-weight: 700;
+            line-height: 1.2;
+            border-radius: 14px;
+            transition: transform .2s ease, box-shadow .2s ease, background .2s ease, color .2s ease, border-color .2s ease;
+        }
+        .btn:hover,
+        .btn:focus,
+        .btn-primary:hover,
+        .btn-success:hover,
+        .btn-outline-primary:hover,
+        .btn-outline-danger:hover,
+        .btn-secondary:hover {
+            transform: translateY(-1px);
+        }
+        .btn-primary,
+        .btn-success {
+            background: linear-gradient(135deg, var(--admin-accent), #fb7185);
+            border-color: transparent;
+            color: #fff;
+            box-shadow: 0 14px 28px rgba(239, 68, 68, 0.2);
+        }
+        .btn-outline-primary,
+        .btn-outline-danger,
+        .btn-secondary {
+            border-color: rgba(239, 68, 68, 0.35);
+            color: #f87171;
+            background: rgba(255, 255, 255, 0.02);
+        }
+        .btn-small {
+            min-height: 42px;
+            padding: 10px 16px;
+            font-size: 13px;
+            border-radius: 12px;
+        }
+        .submitted-order-card {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            border-radius: 18px;
+            padding: 18px;
+            margin-bottom: 14px;
+        }
+        .submitted-order-card .order-details {
+            white-space: pre-wrap;
+            color: #cbd5e1;
+            margin-top: 12px;
+            line-height: 1.7;
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+        }
+        .summary-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            border-radius: 18px;
+            padding: 18px;
+            min-height: 112px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .summary-card strong {
+            font-size: 1.25rem;
+            color: #f8fafc;
+        }
+        .summary-card small {
+            color: #94a3b8;
+        }
+        #summary-month-select {
+            background: rgba(15, 23, 42, 0.95);
+            color: #e2e8f0;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 12px;
+            padding: 8px 10px;
+        }
+        #summary-month-select:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+        }
+        .order-status-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: flex-end;
+            margin-top: 16px;
+        }
+        .order-status-actions button {
+            min-width: 110px;
+            font-size: 0.82rem;
+            padding: 8px 12px;
+        }
+        .order-status-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            border: 1px solid rgba(239, 68, 68, 0.35);
+            background: rgba(255,255,255,0.05);
+            color: #f87171;
+            font-size: 0.92rem;
+            margin-top: 12px;
+        }
+        .order-status-chip span {
+            font-weight: 700;
+        }
+        .status-active {
+            background: linear-gradient(135deg, rgba(34,197,94,0.9), rgba(34,197,94,0.65));
+            border-color: rgba(34,197,94,0.55);
+            color: #fff;
+        }
+        .status-new {
+            background: rgba(37, 99, 235, 0.15);
+            border-color: rgba(37, 99, 235, 0.35);
+            color: #93c5fd;
+        }
+        .status-canceled {
+            background: rgba(248, 113, 113, 0.15);
+            border-color: rgba(248, 113, 113, 0.35);
+            color: #fecaca;
+        }
+        .status-packed {
+            background: rgba(245, 158, 11, 0.15);
+            border-color: rgba(245, 158, 11, 0.35);
+            color: #fde68a;
+        }
+        .status-shipped {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: rgba(16, 185, 129, 0.35);
+            color: #a7f3d0;
+        }
+        .update-popup {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: rgba(15, 23, 42, 0.96);
+            color: #fff;
+            border: 1px solid rgba(239, 68, 68, 0.35);
+            padding: 14px 18px;
+            border-radius: 16px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+            z-index: 2000;
+            opacity: 0;
+            transform: translateY(16px);
+            transition: opacity .25s ease, transform .25s ease;
+        }
+        .update-popup.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .text-muted {
+            color: #94a3b8 !important;
+        }
+        .admin-footer {
+            padding: 22px 0;
+            text-align: center;
+            color: #94a3b8;
+        }
+        .admin-footer strong {
+            color: #e2e8f0;
+        }
+        @media (max-width: 991px) {
+            .admin-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .dropdown .form-select {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <section id="auth-screen" class="admin-card auth-card">
+            <div class="d-flex align-items-center justify-content-between mb-4">
+                <div>
+                    <h2 id="auth-title">Admin Login</h2>
+                    <p id="auth-message">Secure access to the order management panel.</p>
+                </div>
+                <div>
+                    <span class="badge">Secure login</span>
+                </div>
+            </div>
+            <form id="auth-form" class="row g-3">
+                <div class="col-md-6">
+                    <label for="auth-username" class="form-label">Username</label>
+                    <input id="auth-username" class="form-control" type="text" placeholder="Enter username" required>
+                </div>
+                <div class="col-md-6">
+                    <label for="auth-password" class="form-label">Password</label>
+                    <input id="auth-password" class="form-control" type="password" placeholder="Enter password" required>
+                </div>
+                <div class="col-12 d-flex flex-wrap gap-2 align-items-center">
+                    <button type="submit" id="auth-submit" class="btn btn-primary">Login</button>
+                    <div id="auth-status" class="auth-status d-none">
+                        <span class="auth-spinner"></span>
+                        <span id="auth-status-text">Signing in...</span>
+                    </div>
+                </div>
+            </form>
+        </section>
+
+        <div id="admin-panel" class="d-none">
+            <header class="admin-header">
+                <div>
+                    <h1>Manage Orders</h1>
+                    <p>Review customer WhatsApp orders submitted from the menu and special poster pages.</p>
+                </div>
+                <div class="d-flex flex-wrap gap-3 align-items-center">
+                    <span id="current-user-badge" class="badge">Not signed in</span>
+                    <div id="session-status" class="session-status d-none">
+                        <span class="session-spinner"></span>
+                        <span id="session-status-text">Signing out...</span>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2 align-items-center">
+                        <a href="index.html" class="btn btn-outline-primary btn-small">Admin Home</a>
+                        <div class="dropdown">
+                            <select id="admin-options" class="form-select form-select-sm">
+                                <option value="admin-home">Admin Home</option>
+                                <option value="home">Back to Home</option>
+                                <option value="menu">View Menu</option>
+                                <option value="logout">Logout</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <section class="admin-card">
+                <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+                    <div>
+                        <h2 style="color: #ffffff !important;">Submitted Customer Orders</h2>
+                        <p class="text-muted mb-0">List of orders submitted from the menu and special poster foods, including customer WhatsApp number, country code, and order details.</p>
+                    </div>
+                    <button type="button" class="btn btn-outline-primary btn-small" id="refresh-orders-btn">Refresh List</button>
+                </div>
+                <div class="summary-grid mt-4">
+                    <div class="summary-card">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>Total Delivered Revenue</span>
+                            <strong id="summary-total-revenue">QR 0</strong>
+                        </div>
+                        <small class="text-muted">Revenue from all delivered orders.</small>
+                    </div>
+                    <div class="summary-card">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>This Month Revenue</span>
+                            <strong id="summary-month-revenue">QR 0</strong>
+                        </div>
+                        <small class="text-muted">Revenue from this month's delivered orders.</small>
+                    </div>
+                    <div class="summary-card">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>Delivered Orders</span>
+                            <strong id="summary-delivered-count">0</strong>
+                        </div>
+                        <small class="text-muted">Delivered orders for selected month.</small>
+                    </div>
+                    <div class="summary-card">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>Month</span>
+                            <select id="summary-month-select" class="form-select form-select-sm" style="width:auto; min-width:170px;"></select>
+                        </div>
+                        <small class="text-muted">Choose month for summary and PDF report.</small>
+                    </div>
+                </div>
+                <div class="d-flex flex-wrap gap-3 align-items-center justify-content-end mt-3">
+                    <button type="button" class="btn btn-secondary btn-small" id="download-monthly-summary-btn">Download monthly PDF report</button>
+                </div>
+                <div id="submitted-orders-list" class="mt-3"></div>
+            </section>
+        </div>
+    </div>
+
+    <footer class="admin-footer">
+        <p>Manage Orders admin page</p>
+    </footer>
+
+    <script>
+        const authScreen = document.getElementById('auth-screen');
+        const authTitle = document.getElementById('auth-title');
+        const authMessage = document.getElementById('auth-message');
+        const authForm = document.getElementById('auth-form');
+        const authUsername = document.getElementById('auth-username');
+        const authPassword = document.getElementById('auth-password');
+        const authSubmit = document.getElementById('auth-submit');
+        const adminPanel = document.getElementById('admin-panel');
+        const currentUserBadge = document.getElementById('current-user-badge');
+        const authStatus = document.getElementById('auth-status');
+        const authStatusText = document.getElementById('auth-status-text');
+        const sessionStatus = document.getElementById('session-status');
+        const sessionStatusText = document.getElementById('session-status-text');
+        const adminOptions = document.getElementById('admin-options');
+        const refreshOrdersButton = document.getElementById('refresh-orders-btn');
+        const submittedOrdersList = document.getElementById('submitted-orders-list');
+
+        let adminUsers = JSON.parse(localStorage.getItem('adminUsers') || 'null');
+        if (!Array.isArray(adminUsers)) {
+            adminUsers = [];
+            const legacyUser = JSON.parse(localStorage.getItem('adminUser') || 'null');
+            if (legacyUser) {
+                adminUsers = [{ username: legacyUser.username, password: legacyUser.password }];
+            }
+        }
+        const mainAdminUsername = 'RASHID313';
+
+        let adminUser = JSON.parse(sessionStorage.getItem('currentAdminUser') || 'null');
+        let adminLoggedIn = sessionStorage.getItem('adminLoggedIn') === 'true';
+        let shopWhatsAppWindow = null;
+        let whatsappMonitorInterval = null;
+        let whatsappConfirmTimeout = null;
+        let dbOrders = [];
+        let dbOrdersLoaded = false;
+
+        function verifyUser(username, password) { return false; }
+
+        function setAuthStatus(message, visible = true) {
+            authStatusText.textContent = message || 'Signing in...';
+            authStatus.classList.toggle('d-none', !visible);
+            authSubmit.disabled = visible;
+        }
+
+        function setSessionStatus(message, visible = true) {
+            sessionStatusText.textContent = message || 'Signing out...';
+            sessionStatus.classList.toggle('d-none', !visible);
+        }
+
+        function showAdminPanel() {
+            setAuthStatus('', false);
+            setSessionStatus('', false);
+            authScreen.classList.add('d-none');
+            adminPanel.classList.remove('d-none');
+            sessionStorage.setItem('adminLoggedIn', 'true');
+            if (adminUser) {
+                sessionStorage.setItem('currentAdminUser', JSON.stringify(adminUser));
+                currentUserBadge.textContent = `Signed in as ${adminUser.username}`;
+            } else {
+                currentUserBadge.textContent = 'Signed in';
+            }
+            populateMonthSelect();
+            refreshOrdersFromSupabase().then(() => { renderSubmittedOrders(); updateSalesSummaryUI(); }).catch(error => { console.error(error); renderSubmittedOrders(); updateSalesSummaryUI(); });
+        }
+
+        function showAuthScreen() {
+            setAuthStatus('', false);
+            setSessionStatus('', false);
+            authScreen.classList.remove('d-none');
+            adminPanel.classList.add('d-none');
+            sessionStorage.removeItem('adminLoggedIn');
+            sessionStorage.removeItem('currentAdminUser');
+            adminUser = null;
+            currentUserBadge.textContent = 'Not signed in';
+        }
+
+        function normalizeOrder(order) {
+            if (!order || typeof order !== 'object') return null;
+            const details = Array.isArray(order.orderDetails) ? order.orderDetails.join('\n') : order.orderDetails || '';
+            return {
+                id: String(order.id || `order-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`),
+                source: String(order.source || 'menu'),
+                device: String(order.device || (navigator.userAgent.match(/Mobi|Android|iPhone|iPad|iPod/i) ? 'mobile' : 'desktop')),
+                customerCountryCode: String(order.customerCountryCode || '+974'),
+                customerPhoneNumber: String(order.customerPhoneNumber || ''),
+                customerName: String(order.customerName || order.customerFullName || ''),
+                orderDetails: details,
+                total: String(order.total || ''),
+                status: String(order.status || 'new'),
+                createdAt: order.createdAt || new Date().toISOString(),
+                deliveredAt: order.deliveredAt || order.deliveredAt
+            };
+        }
+
+        function migrateLegacySubmittedOrders() {
+            const legacyKeys = ['karakSubmittedOrdersMobile', 'karakSubmittedOrdersDesktop', 'submittedOrders'];
+            let collectedOrders = [];
+            legacyKeys.forEach(key => {
+                try {
+                    const stored = localStorage.getItem(key);
+                    if (!stored) return;
+                    const parsed = JSON.parse(stored);
+                    if (Array.isArray(parsed)) {
+                        collectedOrders = collectedOrders.concat(parsed);
+                    }
+                    localStorage.removeItem(key);
+                } catch (e) {}
+            });
+            if (collectedOrders.length) {
+                const existing = JSON.parse(localStorage.getItem('karakSubmittedOrders') || '[]');
+                const merged = existing.concat(collectedOrders).map(normalizeOrder).filter(Boolean);
+                const uniqueOrders = [];
+                merged.forEach(order => {
+                    if (!uniqueOrders.some(existingOrder => existingOrder.id === order.id)) {
+                        uniqueOrders.push(order);
+                    }
+                });
+                saveSubmittedOrders(uniqueOrders);
+            }
+        }
+
+        async function refreshOrdersFromSupabase() {
+            if (!window.KarakDB || typeof window.KarakDB.getOrders !== 'function') return [];
+            try {
+                const rows = await window.KarakDB.getOrders();
+                dbOrders = (rows || []).map(row => normalizeSupabaseOrder(row));
+                dbOrdersLoaded = true;
+                return dbOrders;
+            } catch (error) {
+                console.error('Could not load orders from Supabase:', error);
+                return dbOrders;
+            }
+        }
+
+        function normalizeSupabaseOrder(row) {
+            return normalizeOrder({
+                id: row.id,
+                source: row.source || 'website',
+                customerCountryCode: row.customer_country_code,
+                customerPhoneNumber: row.customer_phone_number,
+                customerName: row.customer_name,
+                orderDetails: row.message || (Array.isArray(row.items) ? row.items.map(item => `• ${item.name || 'Item'} x${item.quantity || 1}`).join('\n') : ''),
+                total: row.total,
+                status: row.status,
+                createdAt: row.created_at,
+                items: row.items || []
+            });
+        }
+
+        function getSubmittedOrders() {
+            if (dbOrdersLoaded) return dbOrders.slice();
+            try {
+                const stored = localStorage.getItem('karakSubmittedOrders');
+                if (stored) {
+                    const parsed = JSON.parse(stored);
+                    return Array.isArray(parsed) ? parsed.map(normalizeOrder).filter(Boolean) : [];
+                }
+            } catch (e) {}
+            return [];
+        }
+
+        function saveSubmittedOrders(orders) {
+            localStorage.setItem('karakSubmittedOrders', JSON.stringify(orders));
+            dbOrders = orders.map(normalizeOrder).filter(Boolean);
+            dbOrdersLoaded = true;
+        }
+
+
+        function parseOrderAmount(value) {
+            const raw = String(value || '').replace(/[^0-9.-]/g, '');
+            return parseFloat(raw) || 0;
+        }
+
+        function getCurrentMonthKey() {
+            const now = new Date();
+            return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+        }
+
+        function monthKeyToLabel(key) {
+            const [year, month] = String(key).split('-').map(Number);
+            if (!year || !month) return '-';
+            return new Date(year, month - 1).toLocaleString('default', { month: 'long', year: 'numeric' });
+        }
+
+        function getSelectedMonthKey() {
+            const select = document.getElementById('summary-month-select');
+            return select ? select.value : getCurrentMonthKey();
+        }
+
+        function populateMonthSelect() {
+            const select = document.getElementById('summary-month-select');
+            if (!select) return;
+            const now = new Date();
+            select.innerHTML = '';
+            for (let i = 0; i < 12; i += 1) {
+                const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                const option = document.createElement('option');
+                option.value = key;
+                option.textContent = monthKeyToLabel(key);
+                select.appendChild(option);
+            }
+            select.value = getCurrentMonthKey();
+            select.addEventListener('change', () => {
+                updateSalesSummaryUI();
+            });
+        }
+
+        function formatCurrency(amount) {
+            const formatted = amount.toFixed(2).replace(/\.00$/, '');
+            return `QR ${formatted}`;
+        }
+
+        function computeSalesSummary(orders, monthKey = getSelectedMonthKey()) {
+            const summary = {
+                totalRevenue: 0,
+                monthRevenue: 0,
+                deliveredCount: 0,
+                monthLabel: monthKeyToLabel(monthKey)
+            };
+
+            orders.forEach(order => {
+                if (!order) return;
+                const amount = parseOrderAmount(order.total);
+                const statusDelivered = (order.status || 'new').toLowerCase() === 'delivered';
+                if (!statusDelivered) return;
+                summary.totalRevenue += amount;
+                const deliveredAt = order.deliveredAt ? new Date(order.deliveredAt) : new Date(order.createdAt || null);
+                if (!isNaN(deliveredAt.getTime())) {
+                    const orderMonthKey = `${deliveredAt.getFullYear()}-${String(deliveredAt.getMonth() + 1).padStart(2, '0')}`;
+                    if (orderMonthKey === monthKey) {
+                        summary.monthRevenue += amount;
+                        summary.deliveredCount += 1;
+                    }
+                }
+            });
+
+            return summary;
+        }
+
+        function updateSalesSummaryUI() {
+            const orders = getSubmittedOrders();
+            const summary = computeSalesSummary(orders, getSelectedMonthKey());
+            document.getElementById('summary-total-revenue').textContent = formatCurrency(summary.totalRevenue);
+            document.getElementById('summary-month-revenue').textContent = formatCurrency(summary.monthRevenue);
+            document.getElementById('summary-delivered-count').textContent = String(summary.deliveredCount);
+        }
+
+        function downloadMonthlySummary() {
+            const orders = getSubmittedOrders();
+            const monthKey = getSelectedMonthKey();
+            const monthLabel = monthKeyToLabel(monthKey);
+            const deliveredOrders = orders.filter(order => {
+                if (!order) return false;
+                const statusDelivered = (order.status || 'new').toLowerCase() === 'delivered';
+                if (!statusDelivered) return false;
+                const deliveredAt = order.deliveredAt ? new Date(order.deliveredAt) : new Date(order.createdAt || null);
+                if (isNaN(deliveredAt.getTime())) return false;
+                const orderMonthKey = `${deliveredAt.getFullYear()}-${String(deliveredAt.getMonth() + 1).padStart(2, '0')}`;
+                return orderMonthKey === monthKey;
+            });
+
+            if (!deliveredOrders.length) {
+                alert(`No delivered orders found for ${monthLabel}.`);
+                return;
+            }
+
+            const shopName = 'Karak Station';
+            const shopAddress = 'Doha, Qatar';
+            const doc = new window.jspdf.jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+            const leftMargin = 14;
+            const rightMargin = doc.internal.pageSize.getWidth() - 14;
+            const headerRightX = rightMargin - 60;
+
+            doc.setFontSize(14);
+            doc.text('Monthly Sales Report', leftMargin, 38);
+            doc.setFontSize(10);
+            doc.text(`Month: ${monthLabel}`, leftMargin, 45);
+            doc.text(`Generated: ${new Date().toLocaleString()}`, leftMargin, 51);
+
+            doc.setFontSize(16);
+            doc.text(shopName, headerRightX, 20, { align: 'left' });
+            doc.setFontSize(10);
+            doc.text(shopAddress, headerRightX, 26, { align: 'left' });
+
+            const tableBody = deliveredOrders.map(order => [
+                order.customerName || '',
+                `${order.customerCountryCode || '+974'} ${order.customerPhoneNumber || ''}`,
+                order.source === 'special-poster' ? 'Special Poster Food' : 'Menu Order',
+                formatOrderStatus(order.status),
+                order.total || ''
+            ]);
+
+            doc.autoTable({
+                head: [['Customer Name', 'WhatsApp Number', 'Source', 'Status', 'Total']],
+                body: tableBody,
+                startY: 58,
+                styles: { fontSize: 10, textColor: 20 },
+                headStyles: { fillColor: [220, 220, 220], textColor: 20, halign: 'left' },
+                theme: 'grid',
+                alternateRowStyles: { fillColor: [245, 245, 245] },
+                margin: { left: leftMargin, right: leftMargin }
+            });
+
+            const totalRevenue = deliveredOrders.reduce((sum, order) => sum + parseOrderAmount(order.total), 0);
+            const finalY = doc.lastAutoTable ? doc.lastAutoTable.finalY + 12 : 58;
+            doc.setFontSize(11);
+            doc.text(`Total Delivered Revenue: ${formatCurrency(totalRevenue)}`, leftMargin, finalY);
+
+            doc.save(`monthly-sales-report-${monthKey}.pdf`);
+        }
+
+        function getShopWhatsAppConnection() {
+            try {
+                const stored = localStorage.getItem('manageOrdersShopWhatsApp');
+                if (stored) {
+                    const connection = JSON.parse(stored);
+                    // Check if connection has expired (24 hours)
+                    if (connection.connectedAt) {
+                        const expiryTime = new Date(connection.connectedAt).getTime() + (24 * 60 * 60 * 1000);
+                        if (Date.now() > expiryTime) {
+                            connection.connected = false;
+                            connection.expired = true;
+                        }
+                    }
+                    return connection;
+                }
+            } catch (e) {}
+            return { number: '+97477821400', connected: false };
+        }
+
+        function saveShopWhatsAppConnection(connection) {
+            if (connection.connected && !connection.connectedAt) {
+                connection.connectedAt = new Date().toISOString();
+            }
+            if (!connection.connected) {
+                delete connection.connectedAt;
+            }
+            localStorage.setItem('manageOrdersShopWhatsApp', JSON.stringify(connection));
+        }
+
+        function getTimeRemainingUntilExpiry() {
+            const connection = getShopWhatsAppConnection();
+            if (!connection.connected || !connection.connectedAt) return null;
+            const expiryTime = new Date(connection.connectedAt).getTime() + (24 * 60 * 60 * 1000);
+            const remaining = expiryTime - Date.now();
+            if (remaining <= 0) return null;
+            const hours = Math.floor(remaining / (60 * 60 * 1000));
+            const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
+            return `${hours}h ${minutes}m remaining`;
+        }
+
+        function normalizeShopWhatsAppNumber(rawPhone) {
+            const value = String(rawPhone || '').trim();
+            const digits = value.replace(/\D/g, '');
+            if (!digits) {
+                return { number: '', formatted: '' };
+            }
+            if (value.startsWith('+') && digits.length > 8) {
+                return { number: '+' + digits, formatted: '+' + digits };
+            }
+            return { number: '+974' + digits, formatted: '+974' + digits };
+        }
+
+        function updateWhatsAppConnectionUI() {
+            const connection = getShopWhatsAppConnection();
+            shopWhatsAppInput.value = connection.number || '+97477821400';
+            const timeRemaining = getTimeRemainingUntilExpiry();
+            if (connection.connected && timeRemaining) {
+                whatsappConnectionStatus.textContent = `Connected (${timeRemaining})`;
+            } else if (connection.connected) {
+                whatsappConnectionStatus.textContent = 'Connected';
+            } else {
+                whatsappConnectionStatus.textContent = 'Not connected';
+            }
+            whatsappConnectionStatus.classList.toggle('status-active', connection.connected);
+            // update the button label
+            if (connection.connected) {
+                connectWhatsAppBtn.textContent = 'Disconnect WhatsApp';
+                connectWhatsAppBtn.classList.remove('btn-success');
+                connectWhatsAppBtn.classList.add('btn-outline-danger');
+            } else {
+                connectWhatsAppBtn.textContent = 'Connect WhatsApp';
+                connectWhatsAppBtn.classList.remove('btn-outline-danger');
+                connectWhatsAppBtn.classList.add('btn-success');
+            }
+        }
+
+        function connectShopWhatsApp() {
+            const rawValue = shopWhatsAppInput.value.trim();
+            const normalized = normalizeShopWhatsAppNumber(rawValue);
+            if (!normalized.number) {
+                alert('Enter a valid shop WhatsApp number before connecting.');
+                return;
+            }
+            console.log('connectShopWhatsApp: starting, normalized=', normalized);
+            // mark as connecting first, confirm after popup stays open
+            saveShopWhatsAppConnection({ number: normalized.number, connected: false });
+            updateWhatsAppConnectionUI();
+            whatsappConnectionStatus.textContent = 'Connecting...';
+            // create a short-lived handshake token and open a same-origin popup page that can send it back
+            const token = (window.crypto && crypto.getRandomValues) ? Array.from(crypto.getRandomValues(new Uint8Array(12))).map(b=>b.toString(16).padStart(2,'0')).join('') : (Date.now().toString(36) + Math.random().toString(36).slice(2,8));
+            localStorage.setItem('manageOrdersWhatsAppToken', token);
+            const popupUrl = 'whatsapp-popup.html?phone=' + encodeURIComponent(normalized.number.replace(/\D/g, '')) + '&token=' + encodeURIComponent(token);
+            try {
+                shopWhatsAppWindow = window.open(popupUrl, 'shop-whatsapp-window', 'width=740,height=520');
+                console.log('connectShopWhatsApp: opened popup', shopWhatsAppWindow);
+                if (!shopWhatsAppWindow) {
+                    showPopup('Popup blocked. Allow popups and try again.');
+                    return;
+                }
+            } catch (e) {
+                console.error('connectShopWhatsApp: window.open error', e);
+                showPopup('Unable to open WhatsApp popup.');
+                return;
+            }
+            startWhatsAppMonitor();
+            // confirm connection after short delay if popup remains open
+            clearTimeout(whatsappConfirmTimeout);
+            whatsappConfirmTimeout = setTimeout(() => {
+                console.log('whatsappConfirmTimeout: checking popup presence', shopWhatsAppWindow);
+                if (shopWhatsAppWindow && !shopWhatsAppWindow.closed) {
+                    // popup still open, but wait for explicit secure connect from popup via postMessage
+                    console.log('whatsappConfirmTimeout: popup present — waiting for secure connect message');
+                } else {
+                    console.log('whatsappConfirmTimeout: popup closed before secure connect');
+                }
+            }, 3000);
+        }
+
+        function disconnectShopWhatsApp() {
+            console.log('disconnectShopWhatsApp: called');
+            const connection = getShopWhatsAppConnection();
+            saveShopWhatsAppConnection({ number: connection.number || '+97477821400', connected: false });
+            updateWhatsAppConnectionUI();
+            if (shopWhatsAppWindow && !shopWhatsAppWindow.closed) {
+                try { shopWhatsAppWindow.close(); } catch (e) {}
+            }
+            shopWhatsAppWindow = null;
+            stopWhatsAppMonitor();
+            clearTimeout(whatsappConfirmTimeout);
+            showPopup('WhatsApp disconnected');
+        }
+
+        function startWhatsAppMonitor() {
+            console.log('startWhatsAppMonitor: starting interval');
+            stopWhatsAppMonitor();
+            whatsappMonitorInterval = setInterval(() => {
+                try {
+                    const connection = getShopWhatsAppConnection();
+                    // Check if connection has expired
+                    if (connection.expired) {
+                        console.log('startWhatsAppMonitor: connection expired after 24 hours');
+                        saveShopWhatsAppConnection({ number: connection.number || '+97477821400', connected: false });
+                        updateWhatsAppConnectionUI();
+                        showPopup('WhatsApp connection expired after 24 hours. Reconnect to continue.');
+                        stopWhatsAppMonitor();
+                        return;
+                    }
+                    if (shopWhatsAppWindow && !shopWhatsAppWindow.closed) {
+                        // still open -> keep connected
+                        saveShopWhatsAppConnection({ number: connection.number || '+97477821400', connected: true });
+                    } else {
+                        // closed or null -> disconnected
+                        saveShopWhatsAppConnection({ number: connection.number || '+97477821400', connected: false });
+                        updateWhatsAppConnectionUI();
+                        stopWhatsAppMonitor();
+                    }
+                    updateWhatsAppConnectionUI();
+                } catch (e) {
+                    console.error('startWhatsAppMonitor: monitor error', e);
+                }
+            }, 5000);
+        }
+
+        function stopWhatsAppMonitor() {
+            console.log('stopWhatsAppMonitor: clearing interval');
+            if (whatsappMonitorInterval) {
+                clearInterval(whatsappMonitorInterval);
+                whatsappMonitorInterval = null;
+            }
+        }
+
+        // Listen for messages from a browser extension or the same-origin popup to signal WhatsApp connection state.
+        // Expected message structure from popup: { type: 'whatsapp-bridge', action: 'connected'|'disconnected', number: '+974...', token: '...' }
+        window.addEventListener('message', (event) => {
+            try {
+                const data = event.data;
+                if (!data || data.type !== 'whatsapp-bridge') return;
+                console.log('message from popup/extension:', data);
+                const expectedToken = localStorage.getItem('manageOrdersWhatsAppToken');
+                // If token is present in message, verify it matches the expected token to prevent spoofing.
+                if (data.token && expectedToken && data.token !== expectedToken) {
+                    console.warn('whatsapp-bridge: token mismatch - ignoring message');
+                    return;
+                }
+                if (data.action === 'connected') {
+                    const number = data.number || getShopWhatsAppConnection().number;
+                    saveShopWhatsAppConnection({ number: number, connected: true });
+                    updateWhatsAppConnectionUI();
+                    showPopup('WhatsApp connected');
+                } else if (data.action === 'disconnected') {
+                    const number = data.number || getShopWhatsAppConnection().number;
+                    saveShopWhatsAppConnection({ number: number, connected: false });
+                    updateWhatsAppConnectionUI();
+                    showPopup('WhatsApp disconnected');
+                }
+                // clear handshake token after a successful connect/disconnect
+                if (data.token) {
+                    localStorage.removeItem('manageOrdersWhatsAppToken');
+                }
+            } catch (e) {
+                console.error('extension/popup message handler error', e);
+            }
+        });
+
+        function showPopup(message) {
+
+            let popup = document.getElementById('update-popup');
+            if (!popup) {
+                popup = document.createElement('div');
+                popup.id = 'update-popup';
+                popup.className = 'update-popup';
+                document.body.appendChild(popup);
+            }
+            popup.textContent = message;
+            popup.classList.add('visible');
+            window.clearTimeout(popup.hideTimeout);
+            popup.hideTimeout = window.setTimeout(() => {
+                popup.classList.remove('visible');
+            }, 2200);
+        }
+
+        function sendCustomerStatusUpdate(order, status) {
+            const raw = String(order.customerPhoneNumber || '').replace(/\D/g, '');
+            if (!raw) return false;
+            const country = String(order.customerCountryCode || '+974').replace(/\D/g, '') || '974';
+            const phone = raw.length === 8 ? country + raw : raw;
+            const statusLabel = formatOrderStatus(status);
+            const details = order.orderDetails || (Array.isArray(order.items) ? order.items.map(item => `• ${item.name || 'Item'} x${item.quantity || 1}`).join('\n') : '');
+            const message = `Hello ${order.customerName || 'Customer'},\n\nYour Karak Station order status is now: ${statusLabel}.\n\nOrder details:\n${details || 'No details available.'}${order.total ? `\n\nTotal: ${order.total}` : ''}\n\nThank you for ordering with Karak Station!`;
+            const url = 'https://wa.me/' + phone + '?text=' + encodeURIComponent(message);
+            window.open(url, '_blank', 'noopener');
+            return true;
+        }
+        function queuePendingUpdate(order, status) {
+            try {
+                const pending = JSON.parse(localStorage.getItem('whatsappPendingUpdates') || '[]');
+                pending.push({
+                    orderId: order.id,
+                    orderData: order,
+                    status: status,
+                    queuedAt: new Date().toISOString(),
+                    attempts: 0
+                });
+                localStorage.setItem('whatsappPendingUpdates', JSON.stringify(pending));
+            } catch (e) {
+                console.error('queuePendingUpdate error:', e);
+            }
+        }
+
+        function processPendingUpdates() {
+            try {
+                const connection = getShopWhatsAppConnection();
+                if (!connection.connected) return;
+                const pending = JSON.parse(localStorage.getItem('whatsappPendingUpdates') || '[]');
+                if (pending.length === 0) return;
+                console.log('processPendingUpdates: processing', pending.length, 'pending updates');
+                const stillPending = [];
+                for (const update of pending) {
+                    if (update.attempts > 5) {
+                        console.warn('processPendingUpdates: max attempts reached for order', update.orderId);
+                        continue;
+                    }
+                    const customerNumber = `${update.orderData.customerCountryCode || '+974'}${update.orderData.customerPhoneNumber}`.replace(/\D/g, '');
+                    if (!customerNumber) {
+                        console.warn('processPendingUpdates: no customer number for order', update.orderId);
+                        continue;
+                    }
+                    const message = `Hello ${update.orderData.customerName || 'customer'},\n\nYour order status has been updated to: ${formatOrderStatus(update.status)}.\n\nOrder details:\n${update.orderData.orderDetails || 'No details available.'}\n\nThank you for ordering with us.`;
+                    try {
+                        if (shopWhatsAppWindow && !shopWhatsAppWindow.closed) {
+                            shopWhatsAppWindow.postMessage({
+                                type: 'whatsapp-send-message',
+                                phone: customerNumber,
+                                message: message
+                            }, '*');
+                            console.log('processPendingUpdates: sent message for order', update.orderId);
+                        } else {
+                            update.attempts++;
+                            stillPending.push(update);
+                        }
+                    } catch (e) {
+                        console.error('processPendingUpdates: send error', e);
+                        update.attempts++;
+                        stillPending.push(update);
+                    }
+                }
+                if (stillPending.length > 0) {
+                    localStorage.setItem('whatsappPendingUpdates', JSON.stringify(stillPending));
+                } else {
+                    localStorage.removeItem('whatsappPendingUpdates');
+                }
+            } catch (e) {
+                console.error('processPendingUpdates error:', e);
+            }
+        }
+
+        function formatOrderStatus(status) {
+            switch (String(status || 'pending').toLowerCase()) {
+                case 'confirmed': return 'Confirmed';
+                case 'preparing': return 'Preparing';
+                case 'ready': return 'Ready';
+                case 'delivered': return 'Delivered';
+                case 'canceled':
+                case 'cancelled': return 'Canceled';
+                default: return 'Pending';
+            }
+        }
+
+        function renderSubmittedOrders() {
+            const orders = getSubmittedOrders();
+            if (!orders.length) {
+                submittedOrdersList.innerHTML = '<div class="text-muted">No customer orders have been submitted yet.</div>';
+                return;
+            }
+
+            submittedOrdersList.innerHTML = orders.map(order => {
+                const status = order.status || 'new';
+                return `
+                <div class="submitted-order-card" data-order-id="${order.id || ''}">
+                    <div class="d-flex justify-content-between flex-wrap gap-2">
+                        <div>
+                            <strong>${order.customerName ? order.customerName : 'Unnamed customer'}</strong>
+                            <div class="text-muted">${order.customerPhoneNumber ? `WhatsApp: ${order.customerCountryCode || '+974'} ${order.customerPhoneNumber}` : 'Customer WhatsApp not captured'}</div>
+                            <div class="text-muted">Source: ${order.source === 'special-poster' ? 'Special Poster Food' : 'Menu Order'}</div>
+                            <div class="text-muted">Device: ${order.device || 'unknown'}</div>
+                        </div>
+                        <div class="text-end">
+                            <div class="text-muted mb-2">${order.createdAt ? new Date(order.createdAt).toLocaleString() : 'Unknown time'}</div>
+                            <div class="order-status-chip status-${status}"><span>${formatOrderStatus(status)}</span></div>
+                        </div>
+                    </div>
+                    <div class="order-details">${Array.isArray(order.orderDetails) ? order.orderDetails.join('\n') : order.orderDetails || 'No order details captured.'}</div>
+                    ${order.total ? `<div class="mt-2"><strong>Total:</strong> ${order.total}</div>` : ''}
+                    <div class="order-status-actions">
+                        <button type="button" class="btn btn-outline-primary btn-small ${status === 'confirmed' ? 'status-active' : ''}" data-status="confirmed" data-order-id="${order.id || ''}">✓ Confirmed</button>
+                        <button type="button" class="btn btn-outline-primary btn-small ${status === 'preparing' ? 'status-active' : ''}" data-status="preparing" data-order-id="${order.id || ''}">👨‍🍳 Preparing</button>
+                        <button type="button" class="btn btn-outline-primary btn-small ${status === 'ready' ? 'status-active' : ''}" data-status="ready" data-order-id="${order.id || ''}">🛍 Ready</button>
+                        <button type="button" class="btn btn-outline-primary btn-small ${status === 'delivered' ? 'status-active' : ''}" data-status="delivered" data-order-id="${order.id || ''}">✓ Delivered</button>
+                        <button type="button" class="btn btn-outline-danger btn-small ${status === 'canceled' ? 'status-active' : ''}" data-status="canceled" data-order-id="${order.id || ''}">✕ Canceled</button>
+                        <button type="button" class="btn btn-secondary btn-small" data-status="pending" data-order-id="${order.id || ''}">↻ Pending</button>
+                    </div>
+                </div>
+            `;
+            }).join('');
+
+            document.querySelectorAll('.order-status-actions button').forEach(button => {
+                button.addEventListener('click', async () => {
+                    const orderId = button.dataset.orderId;
+                    const newStatus = button.dataset.status;
+                    const orders = getSubmittedOrders();
+                    const targetOrder = orders.find(order => (order.id || '') === orderId);
+
+                    if (!targetOrder) {
+                        return;
+                    }
+
+                    const customerName = targetOrder.customerName || 'customer';
+                    const statusLabel = formatOrderStatus(newStatus);
+                    const confirmMessage = `Send a WhatsApp update to ${customerName} telling them their order status is now ${statusLabel}?`;
+
+                    if (!window.confirm(confirmMessage)) {
+                        return;
+                    }
+
+                    const updatedOrders = orders.map(order => {
+                        if ((order.id || '') === orderId) {
+                            const updated = newStatus === 'delivered' ? markOrderDelivered(order) : { ...order, status: newStatus };
+                            if (newStatus === 'delivered') {
+                                let amount = parseOrderAmount(updated.total);
+                                if (amount <= 0) {
+                                    const promptValue = prompt('Enter delivered order amount (QR):', order.total ? order.total.replace(/[^0-9.]/g, '') : '');
+                                    if (promptValue) {
+                                        const parsed = parseFloat(promptValue.replace(/[^0-9.-]/g, ''));
+                                        if (!isNaN(parsed) && parsed > 0) {
+                                            const formatted = parsed % 1 === 0 ? parsed.toFixed(0) : parsed.toFixed(2);
+                                            updated.total = `QR ${formatted}`;
+                                            amount = parsed;
+                                        } else {
+                                            alert('Invalid amount entered.');
+                                        }
+                                    }
+                                } else {
+                                    const formatted = amount % 1 === 0 ? amount.toFixed(0) : amount.toFixed(2);
+                                    updated.total = `QR ${formatted}`;
+                                }
+                            }
+                            return updated;
+                        }
+                        return order;
+                    });
+
+                    const updated = updatedOrders.find(order => (order.id || '') === orderId);
+                    try {
+                        if (window.KarakDB && typeof window.KarakDB.updateOrder === 'function') {
+                            const patch = { status: newStatus };
+                            if (updated && updated.total) patch.total = updated.total;
+                            await window.KarakDB.updateOrder(orderId, patch);
+                        }
+                        saveSubmittedOrders(updatedOrders);
+                        const sent = sendCustomerStatusUpdate(updated, newStatus);
+                        if (sent) showPopup('Status saved. WhatsApp message opened.');
+                        else if (!updated.customerPhoneNumber) showPopup('Status saved. No customer WhatsApp number.');
+                        else showPopup('Status updated');
+                        renderSubmittedOrders();
+                        updateSalesSummaryUI();
+                    } catch (error) {
+                        console.error('Order status update failed:', error);
+                        alert('Order status could not be updated in Supabase: ' + (error.message || error));
+                    }
+                });
+            });
+        }
+
+        function markOrderDelivered(order) {
+            const updated = { ...order, status: 'delivered' };
+            if (!order.deliveredAt) {
+                updated.deliveredAt = new Date().toISOString();
+            }
+            return updated;
+        }
+
+        authForm.addEventListener('submit', async event => {
+            event.preventDefault();
+            const username = authUsername.value.trim(), password = authPassword.value;
+            if (!username || !password) return alert('Please enter both username and password.');
+            setAuthStatus('Signing in...', true);
+            try {
+                const email = username.includes('@') ? username : `${username.toLowerCase()}@karakstation.local`;
+                await KarakDB.signIn(email, password);
+                const profile = await KarakDB.adminProfile();
+                if (!profile) throw new Error('Account is not registered in admin_profiles.');
+                adminUser = { username: profile.username, role: profile.role }; adminLoggedIn = true; showAdminPanel();
+            } catch(e) { setAuthStatus('', false); alert(e.message || 'Invalid login.'); }
+        });
+
+        refreshOrdersButton.addEventListener('click', async () => {
+            refreshOrdersButton.disabled = true;
+            try { await refreshOrdersFromSupabase(); renderSubmittedOrders(); updateSalesSummaryUI(); }
+            finally { refreshOrdersButton.disabled = false; }
+        });
+
+        document.getElementById('download-monthly-summary-btn').addEventListener('click', downloadMonthlySummary);
+
+        // Auto-process pending updates every 30 seconds
+        setInterval(() => {
+            processPendingUpdates();
+        }, 30000);
+
+        adminOptions.addEventListener('change', () => {
+            const value = adminOptions.value;
+            if (value === 'admin-home') {
+                sessionStorage.setItem('adminInternalNav', Date.now().toString());
+                window.location.href = 'index.html';
+            } else if (value === 'home') {
+                sessionStorage.setItem('adminInternalNav', Date.now().toString());
+                window.location.href = '../index.html';
+            } else if (value === 'menu') {
+                sessionStorage.setItem('adminInternalNav', Date.now().toString());
+                window.location.href = '../menu.html';
+            } else if (value === 'logout') {
+                setSessionStatus('Signing out...', true);
+                window.setTimeout(() => {
+                    showAuthScreen();
+                    setSessionStatus('', false);
+                }, 600);
+            }
+            adminOptions.value = 'admin-home';
+        });
+
+        async function restoreSupabaseAdminSession() {
+            try {
+                const profile = await KarakDB.adminProfile();
+                if (profile) {
+                    adminUser = { username: profile.username, role: profile.role };
+                    adminLoggedIn = true;
+                    showAdminPanel();
+                    return true;
+                }
+            } catch (error) {
+                console.warn('Could not restore Supabase admin session:', error);
+            }
+            return false;
+        }
+
+        async function initializeAdminPage() {
+            // v4: this page is reached from the already-authenticated admin dashboard.
+            // Restore the dashboard marker immediately so navigation never falls back
+            // to the login screen while Supabase restores its Auth session.
+            const dashboardLoggedIn = sessionStorage.getItem('adminLoggedIn') === 'true';
+            if (dashboardLoggedIn) {
+                adminLoggedIn = true;
+                try {
+                    adminUser = JSON.parse(sessionStorage.getItem('currentAdminUser') || 'null') || { username: 'Admin', role: 'admin' };
+                } catch (_) {
+                    adminUser = { username: 'Admin', role: 'admin' };
+                }
+                showAdminPanel();
+                // Continue restoring Supabase in the background; do not hide the panel
+                // if Auth restoration is slow.
+                try { await restoreSupabaseAdminSession(); } catch (_) {}
+                return;
+            }
+            // IMPORTANT: Manage Orders is a separate HTML page. Do not rely only on
+            // sessionStorage; restore the real Supabase Auth session first.
+            try {
+                if (!window.karakSupabase) {
+                    await new Promise((resolve, reject) => {
+                        const timer = setTimeout(() => reject(new Error('Supabase did not initialize.')), 12000);
+                        if (window.karakSupabase) { clearTimeout(timer); resolve(); return; }
+                        window.addEventListener('karak-supabase-ready', () => { clearTimeout(timer); resolve(); }, { once: true });
+                    });
+                }
+
+                const sessionResult = await window.karakSupabase.auth.getSession();
+                const session = sessionResult?.data?.session;
+                if (session?.user) {
+                    const profileResult = await window.karakSupabase
+                        .from('admin_profiles')
+                        .select('id, username, role')
+                        .eq('id', session.user.id)
+                        .maybeSingle();
+                    if (profileResult.error) throw profileResult.error;
+                    if (profileResult.data) {
+                        adminUser = { username: profileResult.data.username || session.user.email, role: profileResult.data.role || 'admin' };
+                        adminLoggedIn = true;
+                        showAdminPanel();
+                        return;
+                    }
+                }
+            } catch (error) {
+                console.error('Manage Orders session restore failed:', error);
+            }
+
+            // Same-tab fallback: the dashboard already authenticated this admin.
+            // This keeps navigation working even if Supabase's async session restore
+            // is temporarily delayed. Database requests still use Supabase Auth.
+            if (sessionStorage.getItem('adminLoggedIn') === 'true') {
+                adminLoggedIn = true;
+                adminUser = JSON.parse(sessionStorage.getItem('currentAdminUser') || 'null') || { username: 'Admin', role: 'admin' };
+                showAdminPanel();
+                return;
+            }
+
+            showAuthScreen();
+        }
+
+        initializeAdminPage();
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+</body>
+</html>
