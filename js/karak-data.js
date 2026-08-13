@@ -19,7 +19,7 @@
       if (c.error) fail(c.error); if (f.error) fail(f.error);
       return {
         categories: (c.data || []).map(x => x.name),
-        foods: (f.data || []).map(x => ({ id:x.legacy_id || x.id, name:x.name, arabicName:x.arabic_name, arabicConfirmed:x.arabic_confirmed, amount:x.amount, image:x.image || x.image_url || '', imageData:x.image_url || x.image || '', category:x.category, description:x.description, desc:x.description, status:x.status || (x.is_available === false ? 'unavailable' : 'available') }))
+        foods: (f.data || []).map(x => ({ id:x.legacy_id || x.id, name:x.name, arabicName:x.arabic_name, arabicConfirmed:x.arabic_confirmed, amount:x.amount, image:x.image, imageData:x.image_url || '', category:x.category, description:x.description, desc:x.description, status:x.status }))
       };
     },
     async saveMenu(categories, foods) {
