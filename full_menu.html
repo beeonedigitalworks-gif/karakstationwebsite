@@ -1,0 +1,391 @@
+<!doctype html>
+<html class="no-js" lang="zxx">
+<head>
+    <script src="./js/supabase-config.js"></script>
+    <script src="./js/supabase-client.js"></script>
+    <script src="./js/karak-data.js"></script>
+    <script src="./js/supabase-sync.js"></script>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title>KARAK STATION | Full Menu</title>
+    <meta name="description" content="Download the full Karak Station menu PDF.">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="manifest" href="site.webmanifest">
+    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
+
+    <!-- CSS here -->
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/owl.carousel.min.css">
+    <link rel="stylesheet" href="css/slicknav.css">
+    <link rel="stylesheet" href="css/flaticon.css">
+    <link rel="stylesheet" href="css/gijgo.css">
+    <link rel="stylesheet" href="css/animate.min.css">
+    <link rel="stylesheet" href="css/magnific-popup.css">
+    <link rel="stylesheet" href="css/fontawesome-all.min.css">
+    <link rel="stylesheet" href="css/themify-icons.css">
+    <link rel="stylesheet" href="css/slick.css">
+    <link rel="stylesheet" href="css/nice-select.css">
+    <link rel="stylesheet" href="css/style.css">    <style>
+        /* Logo and Text Animation */
+        @keyframes logoSlideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes textSlideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes textBounce {
+            0%, 100% {
+                transform: translateX(0);
+            }
+            50% {
+                transform: translateX(5px);
+            }
+        }
+        
+        .logo {
+            animation: logoSlideInLeft 0.8s ease-out;
+            gap: 10px;
+            min-width: 0;
+        }
+        
+        .logo a {
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        
+        .logo a img {
+            animation: logoSlideInLeft 0.8s ease-out;
+            width: 52px;
+            height: 52px;
+            object-fit: contain;
+            display: block;
+        }
+        
+        .logo .brand-text {
+            animation: textSlideInRight 0.8s ease-out 0.3s both;
+            color: #ff0033;
+            font-size: clamp(18px, 2.2vw, 32px);
+            font-weight: 700;
+            line-height: 1.1;
+            letter-spacing: 0.02em;
+            white-space: nowrap;
+        }
+        
+        .logo .brand-text:hover {
+            animation: textBounce 0.6s ease-in-out;
+        }
+
+        .main-menu ul#navigation > li {
+            position: relative;
+        }
+
+        .main-menu ul#navigation > li > ul.submenu {
+            left: 50%;
+            transform: translateX(-50%);
+            min-width: 180px;
+            text-align: left;
+            padding: 10px 0;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        @media (max-width: 1199px) {
+            .logo a img { width: 46px; height: 46px; }
+            .logo .brand-text { font-size: clamp(16px, 2vw, 24px); }
+        }
+
+        @media (max-width: 991px) {
+            .logo a img { width: 42px; height: 42px; }
+            .logo .brand-text { font-size: 18px; }
+            .main-menu ul#navigation > li > ul.submenu {
+                left: 0;
+                transform: none;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .logo { gap: 8px; }
+            .logo a img { width: 38px; height: 38px; }
+            .logo .brand-text { font-size: 15px; letter-spacing: 0; }
+            .main-header .container-fluid { padding-left: 15px; padding-right: 15px; }
+        }
+        
+        /* Footer logo white color */
+        .footer-logo img {
+            filter: brightness(0) invert(1);
+        }
+    </style></head>
+<body>
+    <!--? Preloader Start -->
+    <div id="preloader-active">
+        <div class="preloader d-flex align-items-center justify-content-center">
+            <div class="preloader-inner position-relative">
+                <div class="preloader-circle"></div>
+                <div class="preloader-img pere-text">
+                    <img src="logo/logo.png" alt="Karak Station logo">
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Preloader Start -->
+    <header>
+        <!--? Header Start -->
+        <div class="header-area">
+                <div class="main-header  header-sticky">
+                    <div class="container-fluid">
+                        <div class="row align-items-center">
+                            <!-- Logo -->
+                            <div class="col-xl-2 col-lg-2 col-md-1">
+                                <div class="logo d-flex align-items-center">
+                                    <a href="index.html"><img src="logo/logo.png" alt="Karak Station logo"></a>
+                                    <span class="brand-text">KARAK STATION</span>
+                                </div>
+                            </div>
+                            <div class="col-xl-10 col-lg-10 col-md-10">
+                                <div class="menu-main d-flex align-items-center justify-content-end">
+                                    <!-- Main-menu -->
+                                    <div class="main-menu f-right d-none d-lg-block">
+                                        <nav>
+                                            <ul id="navigation">
+                                                <li><a href="index.html">Home</a></li>
+                                                <li><a href="about.html">About</a></li>
+                                                <li><a href="menu.html">Menu</a></li>
+                                                    <li><a href="blog.html">Blog</a></li>
+                                                <li><a href="contact.html">Contact</a></li>
+                                                <li class="d-lg-none"><a href="full_menu.html">Full Menu</a></li>
+                                            </ul>
+                                        </nav>
+                                    </div>
+                                    <div class="header-right-btn f-right d-none d-lg-block ml-20">
+                                        <a href="full_menu.html" class="border-btn header-btn">Full Menu</a>
+                                        <a href="menu.html" class="border-btn header-btn">Order Online</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Mobile Menu -->
+                            <div class="col-12">
+                                <div class="mobile_menu d-block d-lg-none"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+        </div>
+        <!-- Header End -->
+    </header>
+    <main>
+        <!--? gallery Products Start -->
+        <section class="gallery-area fix ">
+            <!-- Gallery Top Start -->
+            <div class="gallery-top section-bg pt-90 pb-40" data-background="gallery/section_bg01.png">
+                <div class="container">
+                    <div class="row justify-content-center">
+                        <div class="cl-xl-7 col-lg-8 col-md-10">
+                            <!-- Section Tittle -->
+                            <div class="section-tittle text-center mb-70">
+                                <span>Full Menu</span>
+                                <h2>Download the complete Karak Station menu</h2>
+                                <p>Get the full menu PDF with all available dishes and prices for easy offline access.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row justify-content-center">
+                        <div class="col-xl-8 col-lg-10">
+                            <div class="menu-download-box text-center mb-50">
+                                <div class="download-icon mb-30">
+                                    <i class="fas fa-file-pdf fa-4x" style="color:#ff5600;"></i>
+                                </div>
+                                <h3>Download the full Karak menu</h3>
+                                <p>You can download the full menu PDF file to view the complete selection of items offline.</p>
+                                <a href="karak%20menu.pdf" download class="btn boxed-btn">Download Menu PDF</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row justify-content-center">
+                        <div class="col-xl-10">
+                            <div class="pdf-pages-list text-center mb-50">
+                                <h4>Browse PDF page thumbnails</h4>
+                                <p>Open any menu page directly by clicking the thumbnail below.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row justify-content-center">
+                        <div class="col-xl-10">
+                            <div class="row" id="pdf-thumbs-row">
+                                <!-- Thumbnails will be generated here -->
+                            </div>
+                            <script>
+                                (function(){
+                                    var container = document.getElementById('pdf-thumbs-row');
+                                    var total = 24; // number of thumbnail pages available
+                                    for (var i = 1; i <= total; i++) {
+                                        var col = document.createElement('div');
+                                        col.className = 'col-sm-6 col-lg-4 mb-30';
+
+                                        var single = document.createElement('div');
+                                        single.className = 'single-blog';
+
+                                        var thumb = document.createElement('div');
+                                        thumb.className = 'thumb';
+
+                                        var a = document.createElement('a');
+                                        a.href = 'karak%20menu.pdf#page=' + i;
+                                        a.target = '_blank';
+
+                                        var img = document.createElement('img');
+                                        img.src = 'menu/page-thumbs/page' + i + '_Im0.jpg';
+                                        img.alt = 'Menu page ' + i;
+                                        img.style.width = '100%';
+                                        img.style.borderRadius = '18px';
+
+                                        a.appendChild(img);
+                                        thumb.appendChild(a);
+                                        single.appendChild(thumb);
+
+                                        var caption = document.createElement('div');
+                                        caption.className = 'blog-caption text-center mt-3';
+                                        caption.innerHTML = '<h4>Page ' + i + '</h4>';
+                                        single.appendChild(caption);
+
+                                        col.appendChild(single);
+                                        container.appendChild(col);
+                                    }
+                                })();
+                            </script>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Gallery Top End -->
+        </section>
+        <!-- Gallery Products End -->
+    </main>
+    <footer>
+        <!--? Footer Start-->
+        <div class="footer-area section-bg" data-background="gallery/section_bg02.png">
+            <div class="container">
+                <div class="footer-top footer-padding">
+                    <div class="row d-flex justify-content-between">
+                        <div class="col-xl-4 col-lg-4 col-md-5 col-sm-8">
+                            <div class="single-footer-caption mb-50">
+                                <!-- logo -->
+                                <div class="footer-logo">
+                                    <a href="index.html"><img src="logo/logo2_footer.png" alt=""></a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-2 col-lg-2 col-md-5 col-sm-6">
+                            <div class="single-footer-caption mb-50">
+                                <div class="footer-tittle">
+                                    <h4>Navigation</h4>
+                                    <ul aria-label="Footer Navigation">
+                                        <li><a href="index.html" aria-label="Navigate to Home page">Home</a></li>
+                                        <li><a href="blog.html" aria-label="Navigate to Blog page">Events</a></li>
+                                        <li><a href="index.html#testimonial" aria-label="Navigate to Testimonial section">Testimonial</a></li>
+                                        <li><a href="menu.html" aria-label="Navigate to Menu page">Categories</a></li>
+                                        <li><a href="contact.html" aria-label="Navigate to Contact page">Contacts</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-xl-4 col-lg-4 col-md-5 col-sm-7">
+                            <div class="single-footer-caption mb-50">
+                                <div class="footer-tittle">
+                                    <h4>Instagram Feed</h4>
+                                </div>
+                                <div class="instagram-gellay">
+                                    <ul class="insta-feed">
+                                        <li><a href="#"><img src="gallery/instagram1.png" alt=""></a></li>
+                                        <li><a href="#"><img src="gallery/instagram2.png" alt=""></a></li>
+                                        <li><a href="#"><img src="gallery/instagram3.png" alt=""></a></li>
+                                        <li><a href="#"><img src="gallery/instagram4.png" alt=""></a></li>
+                                        <li><a href="#"><img src="gallery/instagram5.png" alt=""></a></li>
+                                        <li><a href="#"><img src="gallery/instagram6.png" alt=""></a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="footer-bottom">
+                    <div class="row d-flex justify-content-between align-items-center">
+                        <div class="col-xl-9 col-lg-8">
+                            <div class="footer-copy-right">
+                                <p><!-- Link back to Beeone Digital can't be removed. Template is licensed under CC BY 3.0. -->
+  Copyright &copy;<script>document.write(new Date().getFullYear());</script> All rights reserved | made with <i class="fa fa-heart" aria-hidden="true"></i> by Beeone Digital
+  <!-- Link back to Beeone Digital can't be removed. Template is licensed under CC BY 3.0. --></p>
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-lg-4">
+                            <div class="footer-social f-right">
+                                <span>Follow Us</span>
+                                <a href="https://www.facebook.com/profile.php?id=61590693355336" target="_blank" rel="noopener"><i class="fab fa-facebook-f"></i></a>
+                                <a href="https://www.instagram.com/karakstationqt/" target="_blank" rel="noopener"><i class="fab fa-instagram"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Footer End-->
+    </footer>
+    <!-- Scroll Up -->
+    <div id="back-top" >
+        <a title="Go to Top" href="#"> <i class="fas fa-level-up-alt"></i></a>
+    </div>
+
+    <!-- JS here -->
+    <script src="js/vendor/modernizr-3.5.0.min.js"></script>
+    <script src="js/vendor/jquery-1.12.4.min.js"></script>
+    <script src="js/popper.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/jquery.slicknav.min.js"></script>
+    <script src="js/owl.carousel.min.js"></script>
+    <script src="js/slick.min.js"></script>
+    <script src="js/gijgo.min.js"></script>
+    <script src="js/wow.min.js"></script>
+    <script src="js/animated.headline.js"></script>
+    <script src="js/jquery.magnific-popup.js"></script>
+    <script src="js/jquery.nice-select.min.js"></script>
+    <script src="js/jquery.sticky.js"></script>
+    <script src="js/jquery.barfiller.js"></script>
+    <script src="js/jquery.counterup.min.js"></script>
+    <script src="js/jquery.countdown.min.js"></script>
+    <script src="js/scrollUp.min.js"></script>
+    <script src="js/isotope.pkgd.min.js"></script>
+    <script src="js/imagesloaded.pkgd.min.js"></script>
+    <script src="js/jquery.magnific-popup.min.js"></script>
+    <script src="js/plugins.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/site-settings.js"></script>
+    <script>
+        // Initialize WOW.js for scroll animations
+        new WOW().init();
+    </script>
+    <script src="js/water-animation.js"></script>
+</body>
+</html>
+
+
+
+
+
+
+

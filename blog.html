@@ -1,0 +1,665 @@
+<!doctype html>
+<html class="no-js" lang="zxx">
+<head>
+    <script src="./js/supabase-config.js"></script>
+    <script src="./js/supabase-client.js"></script>
+    <script src="./js/karak-data.js"></script>
+    <script src="./js/supabase-sync.js"></script>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title>KARAK STATION | Blog</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
+
+    <!-- CSS here -->
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/owl.carousel.min.css">
+    <link rel="stylesheet" href="css/slicknav.css">
+    <link rel="stylesheet" href="css/animate.min.css">
+    <link rel="stylesheet" href="css/magnific-popup.css">
+    <link rel="stylesheet" href="css/fontawesome-all.min.css">
+    <link rel="stylesheet" href="css/themify-icons.css">
+    <link rel="stylesheet" href="css/themify-icons.css">
+    <link rel="stylesheet" href="css/slick.css">
+    <link rel="stylesheet" href="css/nice-select.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <style>
+        /* Logo and Text Animation */
+        @keyframes logoSlideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes textSlideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes textBounce {
+            0%, 100% {
+                transform: translateX(0);
+            }
+            50% {
+                transform: translateX(5px);
+            }
+        }
+        
+        .logo {
+            animation: logoSlideInLeft 0.8s ease-out;
+            gap: 10px;
+            min-width: 0;
+        }
+        
+        .logo a {
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        
+        .logo a img {
+            animation: logoSlideInLeft 0.8s ease-out;
+            width: 52px;
+            height: 52px;
+            object-fit: contain;
+            display: block;
+        }
+        
+        .logo .brand-text {
+            animation: textSlideInRight 0.8s ease-out 0.3s both;
+            color: #ff0033;
+            font-size: clamp(18px, 2.2vw, 32px);
+            font-weight: 700;
+            line-height: 1.1;
+            letter-spacing: 0.02em;
+            white-space: nowrap;
+        }
+        
+        .logo .brand-text:hover {
+            animation: textBounce 0.6s ease-in-out;
+        }
+
+        .main-menu ul#navigation > li {
+            position: relative;
+        }
+
+        .main-menu ul#navigation > li > ul.submenu {
+            left: 50%;
+            transform: translateX(-50%);
+            min-width: 180px;
+            text-align: left;
+            padding: 10px 0;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        @media (max-width: 1199px) {
+            .logo a img { width: 46px; height: 46px; }
+            .logo .brand-text { font-size: clamp(16px, 2vw, 24px); }
+        }
+
+        @media (max-width: 991px) {
+            .logo a img { width: 42px; height: 42px; }
+            .logo .brand-text { font-size: 18px; }
+            .main-menu ul#navigation > li > ul.submenu {
+                left: 0;
+                transform: none;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .logo { gap: 8px; }
+            .logo a img { width: 38px; height: 38px; }
+            .logo .brand-text { font-size: 15px; letter-spacing: 0; }
+            .main-header .container-fluid { padding-left: 15px; padding-right: 15px; }
+        }
+        
+        /* Footer logo white color */
+        .footer-logo img {
+            filter: brightness(0) invert(1);
+        }
+
+        .blog_item {
+            margin-bottom: 30px;
+        }
+
+        .blog_item_img img {
+            width: 100%;
+            height: 240px;
+            object-fit: cover;
+            display: block;
+            border-radius: 12px;
+        }
+
+        .blog_details {
+            padding: 24px 0 0;
+        }
+
+        @media (max-width: 767px) {
+            .blog_item_img img {
+                height: 200px;
+            }
+            .blog_details {
+                padding: 18px 0 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!--? Preloader Start -->
+    <div id="preloader-active">
+        <div class="preloader d-flex align-items-center justify-content-center">
+            <div class="preloader-inner position-relative">
+                <div class="preloader-circle"></div>
+                <div class="preloader-img pere-text">
+                    <img src="logo/logo.png" alt="">
+                </div>
+            </div>
+        </div>
+    </div>
+    <header>
+        <!--? Header Start -->
+        <div class="header-area header-transparent">
+                <div class="main-header  header-sticky">
+                    <div class="container-fluid">
+                        <div class="row align-items-center">
+                            <!-- Logo -->
+                            <div class="col-xl-2 col-lg-2 col-md-1">
+                                <div class="logo d-flex align-items-center">
+                                    <a href="index.html"><img src="logo/logo.png" alt=""></a>
+                                    <span class="brand-text">KARAK STATION</span>
+                                </div>
+                            </div>
+                            <div class="col-xl-10 col-lg-10 col-md-10">
+                                <div class="menu-main d-flex align-items-center justify-content-end">
+                                    <!-- Main-menu -->
+                                    <div class="main-menu f-right d-none d-lg-block">
+                                        <nav> 
+                                            <ul id="navigation">
+                                                <li><a href="index.html">Home</a></li>
+                                                <li><a href="about.html">About</a></li>
+                                                <li><a href="menu.html">Menu</a></li>
+                                                <li><a href="blog.html">Blog</a></li>
+                                                <li><a href="contact.html">Contact</a></li>
+                                                <li class="d-lg-none"><a href="full_menu.html">Full Menu</a></li>
+                                            </ul>
+                                        </nav>
+                                    </div>
+                                    <div class="header-right-btn f-right d-none d-lg-block ml-20">
+                                        <a href="menu.html" class="border-btn header-btn">Order Online</a>
+                                    </div>
+                                </div>
+                            </div>   
+                            <!-- Mobile Menu -->
+                            <div class="col-12">
+                                <div class="mobile_menu d-block d-lg-none"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+        </div>
+        <!-- Header End -->
+    </header>
+    <main>
+        <!--? Hero Start -->
+        <div class="slider-area ">
+            <div class="slider-height2 d-flex align-items-center">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-xl-12">
+                            <div class="hero-cap hero-cap2">
+                                <h2>Blog</h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Hero End -->
+        <!--================Blog Area =================-->
+        <section class="blog_area section-padding">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-8 mb-5 mb-lg-0">
+                        <div class="blog_left_sidebar" id="blog-posts-container"></div>
+                        <!-- Global comments view: populated when user clicks the Comments link on a post -->
+                        <div id="global-comments-view" class="mt-4"></div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="blog_right_sidebar">
+                            <aside class="single_sidebar_widget post_category_widget" id="blog-category-widget">
+                                <h4 class="widget_title" style="color: #2d2d2d;">Category</h4>
+                                <ul class="list cat-list" id="blog-category-list"></ul>
+                            </aside>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!--================Blog Area =================-->
+    </main>
+    <footer aria-label="Restaurant site footer with contact information">
+        <!--? Footer Start-->
+        <div class="footer-area section-bg" data-background="gallery/section_bg02.png">
+            <div class="container">
+                <div class="footer-top footer-padding">
+                    <div class="row d-flex justify-content-between">
+                        <div class="col-xl-4 col-lg-4 col-md-5 col-sm-8">
+                            <div class="single-footer-caption mb-50">
+                                <!-- logo -->
+                                <div class="footer-logo">
+                                    <a href="index.html"><img src="logo/karak_station_logo.png" alt="Karak Station logo"></a>
+                                </div>
+                                <div class="footer-contact" aria-labelledby="footer-contact-label">
+                                    <h4 id="footer-contact-label">Restaurant & Cafeteria</h4>
+                                    <p><strong>Restaurant &amp; Cafeteria / مطعم &amp; كافتيريا</strong></p>
+                                    <p>24 HOURS OPEN / مفتوح 24 ساعة</p>
+                                    <p>FREE DELIVERY / توصيل مجاني</p>
+                                    <p>Umm Al Amad, Qatar / أم العماد, قطر</p>
+                                    <p><a href="tel:+97477821400">+974 77821400</a></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-2 col-lg-2 col-md-5 col-sm-6">
+                            <div class="single-footer-caption mb-50">
+                                <div class="footer-tittle">
+                                    <h4>Navigation</h4>
+                                    <ul aria-label="Footer Navigation">
+                                        <li><a href="index.html" aria-label="Navigate to Home page">Home</a></li>
+                                        <li><a href="blog.html" aria-label="Navigate to Blog page">Events</a></li>
+                                        <li><a href="index.html#testimonial" aria-label="Navigate to Testimonial section">Testimonial</a></li>
+                                        <li><a href="menu.html" aria-label="Navigate to Menu page">Categories</a></li>
+                                        <li><a href="contact.html" aria-label="Navigate to Contact page">Contacts</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Instagram -->
+                        <div class="col-xl-4 col-lg-4 col-md-5 col-sm-7">
+                            <div class="single-footer-caption mb-50">
+                                <div class="footer-tittle">
+                                    <h4>Instagram Feed</h4>
+                                </div>
+                                <div class="instagram-gellay">
+                                    <ul class="insta-feed">
+                                        <li><a href="#"><img src="gallery/instagram1.png" alt=""></a></li>
+                                        <li><a href="#"><img src="gallery/instagram2.png" alt=""></a></li>
+                                        <li><a href="#"><img src="gallery/instagram3.png" alt=""></a></li>
+                                        <li><a href="#"><img src="gallery/instagram4.png" alt=""></a></li>
+                                        <li><a href="#"><img src="gallery/instagram5.png" alt=""></a></li>
+                                        <li><a href="#"><img src="gallery/instagram6.png" alt=""></a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="footer-bottom">
+                    <div class="row d-flex justify-content-between align-items-center">
+                        <div class="col-xl-9 col-lg-8">
+                            <div class="footer-copy-right">
+                                <p><!-- Link back to Beeone Digital can't be removed. Template is licensed under CC BY 3.0. -->
+  Copyright &copy;<script>document.write(new Date().getFullYear());</script> All rights reserved | made with <i class="fa fa-heart" aria-hidden="true"></i> by Beeone Digital
+  <!-- Link back to Beeone Digital can't be removed. Template is licensed under CC BY 3.0. --></p>
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-lg-4">
+                            <!-- Footer Social -->
+                            <div class="footer-social f-right">
+                                <span>Follow Us</span>
+                                <a href="https://www.facebook.com/profile.php?id=61590693355336" target="_blank" rel="noopener"><i class="fab fa-facebook-f"></i></a>
+                                <a href="https://www.instagram.com/karakstationqt/" target="_blank" rel="noopener"><i class="fab fa-instagram"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Footer End-->
+    </footer>
+    <!-- Scroll Up -->
+    <div id="back-top" >
+        <a title="Go to Top" href="#"> <i class="fas fa-level-up-alt"></i></a>
+    </div>
+
+    <!-- JS here -->
+	
+    <script src="./js/vendor/modernizr-3.5.0.min.js"></script>
+    <!-- Jquery, Popper, Bootstrap -->
+    <script src="./js/vendor/jquery-1.12.4.min.js"></script>
+    <script src="./js/popper.min.js"></script>
+    <script src="./js/bootstrap.min.js"></script>
+    <!-- Jquery Mobile Menu -->
+    <script src="./js/jquery.slicknav.min.js"></script>
+
+    <!-- Jquery Slick , Owl-Carousel Plugins -->
+    <script src="./js/owl.carousel.min.js"></script>
+    <script src="./js/slick.min.js"></script>
+    <!-- One Page, Animated-HeadLin -->
+    <script src="./js/wow.min.js"></script>
+    <script src="./js/animated.headline.js"></script>
+    
+    <!-- Nice-select, sticky -->
+    <script src="./js/jquery.nice-select.min.js"></script>
+    <script src="./js/jquery.sticky.js"></script>
+    <script src="./js/jquery.magnific-popup.js"></script>
+
+    <!-- contact js -->
+    <script src="./js/contact.js"></script>
+    <script src="./js/jquery.form.js"></script>
+    <script src="./js/jquery.validate.min.js"></script>
+    <script src="./js/mail-script.js"></script>
+    <script src="./js/jquery.ajaxchimp.min.js"></script>
+    
+    <!-- Jquery Plugins, main Jquery -->	
+    <script src="./js/plugins.js"></script>
+    <script src="./js/main.js"></script>
+    <script src="./js/site-settings.js"></script>
+    
+    <script>
+        // Initialize WOW.js for scroll animations
+        new WOW().init();
+
+        const blogCategoriesKey = 'blogCategories';
+        const blogPostsKey = 'blogPosts';
+        const blogPostsContainer = document.getElementById('blog-posts-container');
+        const blogSidebarCategories = document.getElementById('blog-category-list');
+        const blogSidebarRecent = document.getElementById('blog-recent-posts');
+
+        const defaultCategories = ['Travel news', 'Restaurant food', 'Modern technology', 'Product', 'Inspiration', 'Health Care'];
+        const defaultPosts = [
+            {
+                id: 'post-1',
+                title: 'Google inks pact for new 35-storey office',
+                date: '2024-01-15',
+                category: 'Travel news',
+                image: 'blog/single_blog_1.png',
+                likes: 12,
+                comments: 3,
+                commentList: [
+                    { id: 'c1', name: 'Aisha', text: 'Great update!', date: '2024-01-16T08:30:00Z' },
+                    { id: 'c2', name: 'Kamal', text: 'Very informative.', date: '2024-01-16T10:20:00Z' },
+                    { id: 'c3', name: 'Lina', text: 'Thanks for sharing.', date: '2024-01-16T12:45:00Z' }
+                ],
+                link: 'blog_details.html',
+                excerpt: 'That dominion stars lights dominion divide years for fourth have don\'t stars is that he earth it first without heaven.',
+                content: 'That dominion stars lights dominion divide years for fourth have don\'t stars is that he earth it first without heaven in place seed it second morning saying.'
+            },
+            {
+                id: 'post-2',
+                title: 'The Amazing Hubble',
+                date: '2024-01-10',
+                category: 'Modern technology',
+                image: 'blog/single_blog_2.png',
+                likes: 4,
+                comments: 1,
+                commentList: [
+                    { id: 'c4', name: 'Sami', text: 'Excellent read.', date: '2024-01-11T09:05:00Z' }
+                ],
+                link: 'blog_details.html',
+                excerpt: 'A look into the extraordinary telescope that changed the way we see space.',
+                content: 'A look into the extraordinary telescope that changed the way we see space and the discoveries that followed.'
+            }
+        ];
+
+        function getStoredBlogData() {
+            let storedCategories = [];
+            let storedPosts = [];
+
+            try {
+                storedCategories = JSON.parse(localStorage.getItem(blogCategoriesKey) || '[]');
+                storedPosts = JSON.parse(localStorage.getItem(blogPostsKey) || '[]');
+            } catch (error) {
+                storedCategories = [];
+                storedPosts = [];
+            }
+
+            const categories = Array.isArray(storedCategories) && storedCategories.length > 0 ? storedCategories : defaultCategories.slice();
+            const posts = Array.isArray(storedPosts) && storedPosts.length > 0 ? storedPosts : defaultPosts.slice();
+
+            if ((!Array.isArray(storedCategories) || storedCategories.length === 0) || (!Array.isArray(storedPosts) || storedPosts.length === 0)) {
+                localStorage.setItem(blogCategoriesKey, JSON.stringify(categories));
+                localStorage.setItem(blogPostsKey, JSON.stringify(posts));
+            }
+            return { categories, posts };
+        }
+
+        function createCategoryItem(category, count) {
+            return `
+                <li>
+                    <a href="#" class="d-flex">
+                        <p>${category}</p>
+                        <p>(${count})</p>
+                    </a>
+                </li>`;
+        }
+
+        function createRecentPostItem(post) {
+            return `
+                <div class="media post_item">
+                    <img src="${post.image || 'post/post_1.png'}" alt="post">
+                    <div class="media-body">
+                        <a href="${post.link || 'blog_details.html'}">
+                            <h3 style="color: #2d2d2d;">${post.title}</h3>
+                        </a>
+                        <p>${post.date || 'Unknown date'}</p>
+                    </div>
+                </div>`;
+        }
+
+        function createBlogPostCard(post) {
+            const date = new Date(post.date || Date.now());
+            const dateDay = date.getDate();
+            const dateMonth = date.toLocaleString('en-US', { month: 'short' });
+            const likes = Number(post.likes || 0);
+            const comments = Array.isArray(post.commentList) ? post.commentList.length : Number(post.comments || 0);
+            const recentComments = (Array.isArray(post.commentList) ? post.commentList.slice(-2).reverse() : []).map(comment => `
+                <div class="mb-3">
+                    <strong>${comment.name}</strong>
+                    <p class="text-muted mb-1" style="font-size: 0.85rem;">${new Date(comment.date).toLocaleString()}</p>
+                    <p>${comment.text}</p>
+                </div>
+            `).join('');
+            return `
+                <article class="blog_item" data-post-id="${post.id}">
+                    <div class="blog_item_img">
+                        <img class="card-img rounded-0" src="${post.image || 'blog/single_blog_1.png'}" alt="${post.title}">
+                        <a href="#" class="blog_item_date">
+                            <h3>${dateDay}</h3>
+                            <p>${dateMonth}</p>
+                        </a>
+                    </div>
+                    <div class="blog_details">
+                        <a class="d-inline-block" href="${post.link || 'blog_details.html'}">
+                            <h2 class="blog-head" style="color: #2d2d2d;">${post.title}</h2>
+                        </a>
+                        <p>${post.excerpt || 'No excerpt available.'}</p>
+                        <ul class="blog-info-link">
+                                            <li><a href="#"><i class="fa fa-user"></i> ${post.category || 'Uncategorized'}</a></li>
+                                            <li><a href="#" class="blog-comments-link" data-post-id="${post.id}"><i class="fa fa-comments"></i> ${comments} Comments</a></li>
+                            <li><a href="#" class="blog-like-link" data-action="like" data-post-id="${post.id}"><i class="fa fa-thumbs-up"></i> ${likes} Like${likes === 1 ? '' : 's'}</a></li>
+                        </ul>
+                        <!-- Comments are handled in the global comments view -->
+                    </div>
+                </article>`;
+        }
+
+        function normalizePostData(post) {
+            return {
+                likes: Number(post.likes || 0),
+                commentList: Array.isArray(post.commentList) ? post.commentList : [],
+                comments: post.comments || 0,
+                ...post
+            };
+        }
+
+        function refreshBlogPage() {
+            const { categories, posts } = getStoredBlogData();
+            const normalizedPosts = posts.map(normalizePostData);
+            if (blogPostsContainer) {
+                blogPostsContainer.innerHTML = '';
+                if (normalizedPosts.length === 0) {
+                    blogPostsContainer.innerHTML = '<p class="text-muted">No blog posts are available right now.</p>';
+                } else {
+                    blogPostsContainer.innerHTML = normalizedPosts.slice().reverse().map(createBlogPostCard).join('');
+                }
+            }
+            if (blogSidebarCategories) {
+                if (categories.length === 0) {
+                    blogSidebarCategories.innerHTML = '<li><a href="#" class="d-flex"><p>No categories</p><p>(0)</p></a></li>';
+                } else {
+                    const counts = categories.reduce((acc, category) => {
+                        acc[category] = (acc[category] || 0) + 1;
+                        return acc;
+                    }, {});
+                    blogSidebarCategories.innerHTML = categories.map(category => createCategoryItem(category, counts[category] || 0)).join('');
+                }
+            }
+            if (blogSidebarRecent) {
+                if (normalizedPosts.length === 0) {
+                    blogSidebarRecent.innerHTML = '<p class="text-muted">No recent posts available.</p>';
+                } else {
+                    const sortedRecent = normalizedPosts.slice().sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 4);
+                    blogSidebarRecent.innerHTML = sortedRecent.map(createRecentPostItem).join('');
+                }
+            }
+        }
+
+        function saveBlogPosts(posts) {
+            localStorage.setItem(blogPostsKey, JSON.stringify(posts));
+        }
+
+        function updatePostLikes(postId) {
+            const data = getStoredBlogData();
+            const post = data.posts.find(item => item.id === postId);
+            if (!post) return;
+            post.likes = Number(post.likes || 0) + 1;
+            saveBlogPosts(data.posts);
+            refreshBlogPage();
+        }
+
+        function addCommentToPost(postId, commenterName, commentText) {
+            const data = getStoredBlogData();
+            const post = data.posts.find(item => item.id === postId);
+            if (!post) return;
+            post.commentList = Array.isArray(post.commentList) ? post.commentList : [];
+            post.commentList.push({
+                id: `comment-${Date.now()}`,
+                name: commenterName,
+                text: commentText,
+                date: new Date().toISOString()
+            });
+            post.comments = post.commentList.length;
+            saveBlogPosts(data.posts);
+            refreshBlogPage();
+        }
+
+        function renderGlobalCommentsForPost(postId) {
+            const container = document.getElementById('global-comments-view');
+            if (!container) return;
+            const { posts } = getStoredBlogData();
+            const post = posts.find(p => p.id === postId);
+            if (!post) {
+                container.innerHTML = '<p class="text-muted">Comments not found for this post.</p>';
+                return;
+            }
+            const comments = Array.isArray(post.commentList) ? post.commentList.slice().sort((a,b)=>new Date(b.date)-new Date(a.date)) : [];
+            const html = [];
+            html.push(`<div class="blog-comments-card"><h3>${post.title}</h3><p class="text-muted">${comments.length} comment(s)</p>`);
+            // Add comment form similar to the per-post form (matches site styling)
+            html.push(`
+                <form id="global-comment-form" data-post-id="${post.id}" class="mb-4">
+                    <div class="form-group mb-3">
+                        <input type="text" name="commenterName" class="form-control" placeholder="Your name">
+                    </div>
+                    <div class="form-group mb-3">
+                        <textarea name="commentText" class="form-control" rows="4" placeholder="Write a comment"></textarea>
+                    </div>
+                    <button type="submit" class="button rounded-0 primary-bg text-white w-100 btn_1 boxed-btn">POST COMMENT</button>
+                </form>
+            `);
+            if (comments.length === 0) {
+                html.push('<p class="text-muted">No comments yet. Be the first to comment.</p>');
+            } else {
+                comments.forEach(c => {
+                    html.push(`<div class="mb-3"><strong>${c.name}</strong><div class="text-muted" style="font-size:0.9rem">${new Date(c.date).toLocaleString()}</div><p>${c.text}</p></div>`);
+                });
+            }
+            html.push('<div class="mt-3"><button class="button boxed-btn" id="close-comments-view">Close</button></div>');
+            container.innerHTML = html.join('');
+            container.scrollIntoView({ behavior: 'smooth' });
+            const closeBtn = document.getElementById('close-comments-view');
+            if (closeBtn) closeBtn.addEventListener('click', () => { container.innerHTML = ''; });
+        }
+
+        document.addEventListener('click', function (e) {
+            const a = e.target.closest('.blog-comments-link');
+            if (!a) return;
+            e.preventDefault();
+            const postId = a.dataset.postId;
+            if (postId) renderGlobalCommentsForPost(postId);
+        });
+
+        // Handle submit from the global comments form (delegated)
+        document.addEventListener('submit', function (e) {
+            const form = e.target.closest('#global-comment-form');
+            if (!form) return;
+            e.preventDefault();
+            const postId = form.dataset.postId;
+            const nameInput = form.querySelector('[name="commenterName"]');
+            const textInput = form.querySelector('[name="commentText"]');
+            const name = nameInput ? nameInput.value.trim() : '';
+            const text = textInput ? textInput.value.trim() : '';
+            if (!postId || !name || !text) return;
+            addCommentToPost(postId, name, text);
+            // Clear inputs and re-open comments view for the same post
+            if (nameInput) nameInput.value = '';
+            if (textInput) textInput.value = '';
+            renderGlobalCommentsForPost(postId);
+        });
+
+        blogPostsContainer.addEventListener('click', event => {
+            const button = event.target.closest('[data-action="like"]');
+            if (!button) return;
+            const postId = button.dataset.postId;
+            if (postId) {
+                updatePostLikes(postId);
+            }
+        });
+
+        // Per-post comment forms removed; comments are posted via the global comments view.
+
+        window.addEventListener('storage', refreshBlogPage);
+        window.addEventListener('focus', refreshBlogPage);
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                refreshBlogPage();
+            }
+        });
+
+        refreshBlogPage();
+    </script>
+    <script src="./js/water-animation.js"></script>
+    
+    </body>
+</html>
+
+
+
+
+

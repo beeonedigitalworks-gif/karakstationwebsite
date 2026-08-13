@@ -1,0 +1,1101 @@
+<!doctype html>
+<html class="no-js" lang="zxx">
+<head>
+    <script src="./js/supabase-config.js"></script>
+    <script src="./js/supabase-client.js"></script>
+    <script src="./js/karak-data.js"></script>
+    <script src="./js/supabase-sync.js"></script>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title>KARAK STATION | Home</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="manifest" href="site.webmanifest">
+    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
+
+	<!-- CSS here -->
+	<link rel="stylesheet" href="css/bootstrap.min.css">
+	<link rel="stylesheet" href="css/owl.carousel.min.css">
+	<link rel="stylesheet" href="css/slicknav.css">
+    <link rel="stylesheet" href="css/flaticon.css">
+    <link rel="stylesheet" href="css/gijgo.css">
+	<link rel="stylesheet" href="css/animate.min.css">
+	<link rel="stylesheet" href="css/magnific-popup.css">
+	<link rel="stylesheet" href="css/fontawesome-all.min.css">
+	<link rel="stylesheet" href="css/themify-icons.css">
+	<link rel="stylesheet" href="css/slick.css">
+	<link rel="stylesheet" href="css/nice-select.css">
+	<link rel="stylesheet" href="css/style.css">
+	<style>
+		.special-foods-carousel {
+			padding: 30px 0;
+			background: #f9f9f9;
+		}
+		.special-carousel {
+			padding: 20px;
+		}
+		.special-food-item {
+			background: #fff;
+			border-radius: 12px;
+			overflow: hidden;
+			box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+			transition: all 0.3s ease;
+			margin: 15px;
+		}
+		.special-food-item:hover {
+			transform: translateY(-5px);
+			box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+		}
+		.food-image {
+			width: 100%;
+			height: 600px;
+			background-size: cover;
+			background-position: center;
+		}
+		.food-info {
+			padding: 20px;
+			text-align: center;
+		}
+		.food-info h4 {
+			margin: 10px 0;
+			font-size: 18px;
+			font-weight: bold;
+			color: #2b2b2b;
+		}
+		.food-info p {
+			color: #6d6d6d;
+			font-size: 14px;
+			margin: 10px 0;
+		}
+		.order-btn {
+			background: #6f0820;
+			color: #fff;
+			border: none;
+			padding: 10px 25px;
+			border-radius: 6px;
+			cursor: pointer;
+			font-weight: bold;
+			transition: all 0.3s ease;
+		}
+		.order-btn:hover {
+			background: #4f0327;
+			transform: scale(1.05);
+		}
+		.owl-carousel .owl-nav {
+			position: absolute;
+			top: 50%;
+			width: 100%;
+			display: flex;
+			justify-content: space-between;
+			transform: translateY(-50%);
+			padding: 0 20px;
+			z-index: 10;
+		}
+		.owl-carousel .owl-nav button {
+			background: rgba(255, 86, 0, 0.8) !important;
+			color: #fff !important;
+			border: none;
+			width: 50px;
+			height: 50px;
+			border-radius: 50%;
+			font-size: 20px;
+			cursor: pointer;
+			transition: all 0.3s ease;
+		}
+		.owl-carousel .owl-nav button:hover {
+			background: #ff5600 !important;
+		}
+		
+		/* Logo and Text Animation */
+		@keyframes logoSlideInLeft {
+			from {
+				opacity: 0;
+				transform: translateX(-50px);
+			}
+			to {
+				opacity: 1;
+				transform: translateX(0);
+			}
+		}
+		
+		@keyframes textSlideInRight {
+			from {
+				opacity: 0;
+				transform: translateX(50px);
+			}
+			to {
+				opacity: 1;
+				transform: translateX(0);
+			}
+		}
+		
+		@keyframes textBounce {
+			0%, 100% {
+				transform: translateX(0);
+			}
+			50% {
+				transform: translateX(5px);
+			}
+		}
+		
+		.logo {
+			animation: logoSlideInLeft 0.8s ease-out;
+			gap: 10px;
+			min-width: 0;
+		}
+		
+		.logo a {
+			display: flex;
+			align-items: center;
+			flex-shrink: 0;
+		}
+		
+		.logo a img {
+			animation: logoSlideInLeft 0.8s ease-out;
+			width: 52px;
+			height: 52px;
+			object-fit: contain;
+			display: block;
+		}
+		
+		.logo .brand-text {
+			animation: textSlideInRight 0.8s ease-out 0.3s both;
+			color: #ff0033;
+			font-size: clamp(18px, 2.2vw, 32px);
+			font-weight: 700;
+			line-height: 1.1;
+			letter-spacing: 0.02em;
+			white-space: nowrap;
+		}
+		
+		.logo .brand-text:hover {
+			animation: textBounce 0.6s ease-in-out;
+		}
+
+		.main-menu ul#navigation > li {
+			position: relative;
+		}
+
+		.main-menu ul#navigation > li > ul.submenu {
+			left: 50%;
+			transform: translateX(-50%);
+			min-width: 180px;
+			text-align: left;
+			padding: 10px 0;
+			border-radius: 10px;
+			box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+		}
+
+		@media (max-width: 1199px) {
+			.logo a img { width: 46px; height: 46px; }
+			.logo .brand-text { font-size: clamp(16px, 2vw, 24px); }
+		}
+
+		@media (max-width: 991px) {
+			.logo a img { width: 42px; height: 42px; }
+			.logo .brand-text { font-size: 18px; }
+			.main-menu ul#navigation > li > ul.submenu {
+				left: 0;
+				transform: none;
+			}
+		}
+
+		@media (max-width: 767px) {
+			.logo { gap: 8px; }
+			.logo a img { width: 38px; height: 38px; }
+			.logo .brand-text { font-size: 15px; letter-spacing: 0; }
+			.main-header .container-fluid { padding-left: 15px; padding-right: 15px; }
+		}
+		
+		/* Footer logo white color */
+		.footer-logo img {
+			filter: brightness(0) invert(1);
+		}
+
+		.blogs-area .single-blogs {
+			margin-bottom: 40px;
+		}
+
+		.blogs-area .single-blogs .blog-img img {
+			width: 100%;
+			height: 220px;
+			object-fit: cover;
+			display: block;
+			border-radius: 12px;
+		}
+
+		@media (max-width: 767px) {
+			.blogs-area .single-blogs {
+				margin-bottom: 24px;
+			}
+			.blogs-area .single-blogs .blog-img img {
+				height: 200px;
+			}
+			.blogs-area .single-blogs .blog-cap {
+				position: static;
+				width: 100%;
+				bottom: auto;
+				right: auto;
+				border-radius: 0 0 12px 12px;
+				padding: 20px;
+				margin-top: 0;
+			}
+		}
+		
+		/* Hero caption text white */
+		.hero__caption h1,
+		.hero__caption p,
+		.hero__caption span {
+			color: #ffffff !important;
+		}
+
+		/* Water Bubble Animation */
+		#water-bubble-container {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			pointer-events: none;
+			z-index: 1000;
+		}
+
+		.water-bubble {
+			position: fixed;
+			pointer-events: none;
+			border-radius: 50%;
+			background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.8), rgba(100, 200, 255, 0.4));
+			box-shadow: inset -2px -2px 5px rgba(255, 255, 255, 0.5), inset 2px 2px 5px rgba(0, 0, 0, 0.2);
+			animation: bubble-float 2s ease-in forwards;
+		}
+
+		@keyframes bubble-float {
+			0% {
+				opacity: 1;
+				transform: translateY(0) scale(1);
+			}
+			50% {
+				opacity: 0.8;
+			}
+			100% {
+				opacity: 0;
+				transform: translateY(-80px) scale(0.5);
+			}
+		}
+	</style>
+</head>
+<body>
+    <!--? Preloader Start -->
+    <div id="preloader-active">
+        <div class="preloader d-flex align-items-center justify-content-center">
+            <div class="preloader-inner position-relative">
+                <div class="preloader-circle"></div>
+                <div class="preloader-img pere-text">
+                    <img src="logo/logo.png" alt="">
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Preloader Start -->
+    <header>
+        <!--? Header Start -->
+        <div class="header-area header-transparent">
+                <div class="main-header  header-sticky">
+                    <div class="container-fluid">
+                        <div class="row align-items-center">
+                            <!-- Logo -->
+                            <div class="col-xl-2 col-lg-2 col-md-1">
+                                <div class="logo d-flex align-items-center">
+                                    <a href="index.html"><img src="logo/logo.png" alt=""></a>
+                                    <span class="brand-text">KARAK STATION</span>
+                                </div>
+                            </div>
+                            <div class="col-xl-10 col-lg-10 col-md-10">
+                                <div class="menu-main d-flex align-items-center justify-content-end">
+                                    <!-- Main-menu -->
+                                    <div class="main-menu f-right d-none d-lg-block">
+                                        <nav> 
+                                            <ul id="navigation">
+                                                <li><a href="index.html">Home</a></li>
+                                                <li><a href="about.html">About</a></li>
+                                                <li><a href="menu.html">Menu</a></li>
+                                                <li><a href="blog.html">Blog</a></li>
+                                                <li><a href="contact.html">Contact</a></li>
+                                                <li class="d-lg-none"><a href="full_menu.html">Full Menu</a></li>
+                                            </ul>
+                                        </nav>
+                                    </div>
+                                    <div class="header-right-btn f-right d-none d-lg-block ml-20">
+                                        <a href="full_menu.html" class="border-btn header-btn">Full Menu</a>
+                                        <a href="menu.html" class="border-btn header-btn">Order Online</a>
+                                    </div>
+                                </div>
+                            </div>   
+                            <!-- Mobile Menu -->
+                            <div class="col-12">
+                                <div class="mobile_menu d-block d-lg-none"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+        </div>
+        <!-- Header End -->
+    </header>
+    <main>
+        <!--? slider Area Start-->
+        <div class="slider-area ">
+            <div class="slider-active">
+                <!-- Single Slider -->
+                <div class="single-slider slider-height d-flex align-items-center">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-xl-9 col-lg-9 col-md-9">
+                                <div class="hero__caption">
+                                    <span data-animation="fadeInLeft" data-delay=".2s">Discover Your Taste</span>
+                                    <h1 data-animation="fadeInLeft" data-delay=".4s">Crafted with Passion, Served with Love.</h1>
+                                    <p data-animation="fadeInLeft" data-delay=".6s">Experience delicious food, refreshing drinks, and unforgettable moments—all served with genuine hospitality.</p>
+                                    <!-- Hero-btn -->
+                                    <div class="hero__btn">
+                                        <a href="menu.html" class="btn hero-btn"  data-animation="fadeInLeft" data-delay=".8s">Explore Menu</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Single Slider -->
+                <div class="single-slider slider-height d-flex align-items-center">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-xl-9 col-lg-9 col-md-9">
+                                <div class="hero__caption">
+                                    <span data-animation="fadeInLeft" data-delay=".2s">Discover Your Taste</span>
+                                    <h1 data-animation="fadeInLeft" data-delay=".4s">Crafted with Passion, Served with Love.</h1>
+                                    <p data-animation="fadeInLeft" data-delay=".6s">Experience delicious food, refreshing drinks, and unforgettable moments—all served with genuine hospitality.</p>
+                                    <!-- Hero-btn -->
+                                    <div class="hero__btn">
+                                        <a href="industries.html" class="btn hero-btn"  data-animation="fadeInLeft" data-delay=".8s">Explore Menu</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- slider Area End-->
+        <!--? About Area Start -->
+        <div class="about-low-area section-padding30">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-lg-6 col-md-12">
+                        <div class="about-caption mb-50">
+                            <!-- Section Tittle -->
+                            <div class="section-tittle mb-35 wow fadeInUp" data-wow-delay="0.2s" data-wow-duration="0.8s">
+                                <span>Discover Your Taste</span>
+                                <h2>Fresh Flavors, Warm Hospitality</h2>
+                            </div>
+                            <p class="wow fadeInUp" data-wow-delay="0.4s" data-wow-duration="0.8s">Experience the perfect blend of authentic flavors, fresh ingredients, and exceptional hospitality. Whether you're craving a quick bite or a family feast, every meal is crafted with care to make every visit memorable..</p>
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-6 col-md-6 col-sm-6 col-xs-10 wow slideInLeft" data-wow-delay="0.3s" data-wow-duration="0.8s">
+                                <div class="single-caption mb-20">
+                                    <div class="caption-icon">
+                                        <span class="flaticon-restaurant"></span>
+                                    </div>
+                                    <div class="caption">
+                                        <p>Our skilled chefs prepare every dish with passion, precision, and years of culinary expertise.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-6 col-md-6 col-sm-6 col-xs-10">
+                                <div class="single-caption mb-20">
+                                    <div class="caption-icon">
+                                        <span class="flaticon-tools-and-utensils-1"></span>
+                                    </div>
+                                    <div class="caption">
+                                        <p>We use only the freshest ingredients to ensure every meal is flavorful, healthy, and satisfying.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-6 col-md-6 col-sm-6 col-xs-10">
+                                <div class="single-caption mb-20">
+                                    <div class="caption-icon">
+                                        <span class="flaticon-hat"></span>
+                                    </div>
+                                    <div class="caption">
+                                        <p>Every dish is prepared in a clean, safe kitchen while maintaining the highest standards of hygiene.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-6 col-md-6 col-sm-6 col-xs-10">
+                                <div class="single-caption mb-20">
+                                    <div class="caption-icon">
+                                        <span class="flaticon-restaurant"></span>
+                                    </div>
+                                    <div class="caption">
+                                        <p>Enjoy warm hospitality and fast, attentive service that makes every dining experience special.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-md-12">
+                        <!-- about-img -->
+                        <div class="about-img ">
+                            <img src="gallery/about.png" alt="">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- About Area End -->
+        <!--? gallery Products Start -->
+        <section class="gallery-area fix ">
+            <!-- Gallery Top Start -->
+            <div class="gallery-top section-bg pt-90 pb-40" data-background="gallery/section_bg01.png">
+                <div class="container">
+                    <div class="row justify-content-center">
+                        <div class="cl-xl-7 col-lg-8 col-md-10">
+                            <!-- Section Tittle -->
+                            <div class="section-tittle text-center mb-70 wow fadeInDown" data-wow-delay="0.2s" data-wow-duration="0.8s">
+                                <span>Our Offerd Menu</span>
+                                <h2>Some Trendy And  Popular Courses Offerd</h2>
+                            </div> 
+                        </div>
+                    </div>
+                    <div class="row justify-content-center">
+                        <div class="properties__button">
+                            <h3 style="text-align: center; margin-bottom: 30px; font-size: 24px; font-weight: bold; animation: fadeInUp 0.8s ease-out;" class="wow fadeInUp" data-wow-delay="0.3s" data-wow-duration="0.8s">🌟 Special Foods 🌟</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Gallery Top End -->
+            <!-- Gallery Bottom Start -->
+            <div class="container-fluid p-0">
+                <!-- Special Foods Carousel -->
+                <div class="special-foods-carousel">
+                    <div class="owl-carousel special-carousel owl-theme"></div>
+                </div>
+                <!-- End Special Foods Carousel -->
+            </div>
+            <!-- Gallery Bottom End -->
+        </section>
+        <!-- gallery Products End -->
+        <!--? About-2 Area Start -->
+        <div class="about-area2 section-padding30">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-lg-6 col-md-12">
+                        <!-- about-img -->
+                        <div class="about-img ">
+                            <img src="gallery/about2.png" alt="">
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-md-12 wow slideInRight" data-wow-delay="0.3s" data-wow-duration="0.8s">
+                        <div class="about-caption mb-50">
+                            <!-- Section Tittle -->
+                            <div class="section-tittle mb-35 wow fadeInUp" data-wow-delay="0.4s" data-wow-duration="0.8s">
+                                <span>About Our Restaurant</span>
+                                <h2>We Serve Delicious Food for Every Family!</h2>
+                            </div>
+                            <p class="pera-top wow fadeInUp" data-wow-delay="0.5s" data-wow-duration="0.8s">At our restaurant, we believe great food brings people together. Every dish is prepared with fresh, high-quality ingredients and authentic recipes to deliver exceptional taste and memorable dining experiences.</p>
+
+                            <p  class="mb-65 pera-bottom wow fadeInUp" data-wow-delay="0.6s" data-wow-duration="0.8s">Whether you're joining us for a family meal, a quick lunch, or a special celebration, our friendly team is dedicated to serving delicious food, refreshing beverages, and warm hospitality in a comfortable atmosphere.</p>
+                            <a href="about.html" class="border-btn wow fadeInUp" data-wow-delay="0.7s" data-wow-duration="0.8s">Learn More</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- About-2 Area End -->
+        <!--? Booking Room Start-->
+        <div class="booking-area section-bg pt-120 pb-130" data-background="gallery/section_bg04.png">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="cl-xl-7 col-lg-8 col-md-10">
+                        <!-- Section Tittle -->
+                        <div class="section-tittle text-center mb-40">
+                            <span>About Our Restaurant</span>
+                            <h2>Book A Table</h2>
+                        </div> 
+                    </div>
+                </div>
+                <div class="row justify-content-center">
+                    <div class="col-12">
+                        <form action="#">
+                            <div class="booking-wrap d-flex justify-content-between align-items-center">
+                                <!-- Single Select Box -->
+                                <div class="single-select-box mb-30">
+                                    <div class="select-this">
+                                        <div class="select-itms">
+                                            <div class="select-icon">
+                                                <i class="ti-user"></i>
+                                            </div>
+                                            <select name="select" id="select1">
+                                                <option value="">Select Number of Persons</option>
+                                                <option value="1 Person">1 Person</option>
+                                                <option value="2 Persons">2 Persons</option>
+                                                <option value="3 Persons">3 Persons</option>
+                                                <option value="4 Persons">4 Persons</option>
+                                                <option value="5 Persons">5 Persons</option>
+                                                <option value="6 Persons">6 Persons</option>
+                                                <option value="7 Persons">7 Persons</option>
+                                                <option value="8 Persons">8 Persons</option>
+                                                <option value="9 Persons">9 Persons</option>
+                                                <option value="10 Persons">10 Persons</option>
+                                                <option value="11 Persons">11 Persons</option>
+                                                <option value="12 Persons">12 Persons</option>
+                                                <option value="13 Persons">13 Persons</option>
+                                                <option value="14 Persons">14 Persons</option>
+                                                <option value="15 Persons">15 Persons</option>
+                                                <option value="16 Persons">16 Persons</option>
+                                                <option value="17 Persons">17 Persons</option>
+                                                <option value="18 Persons">18 Persons</option>
+                                                <option value="19 Persons">19 Persons</option>
+                                                <option value="20 Persons">20 Persons</option>
+                                                <option value="21 Persons">21 Persons</option>
+                                                <option value="22 Persons">22 Persons</option>
+                                                <option value="23 Persons">23 Persons</option>
+                                                <option value="24 Persons">24 Persons</option>
+                                                <option value="25 Persons">25 Persons</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- select in date -->
+                                <div class="single-select-box mb-30">
+                                    <div class="boking-datepicker">
+                                        <input id="datepicker1"  placeholder="Date" />
+                                    </div>
+                                </div>
+                                <!-- Single Select Box -->
+                                <div class="single-select-box mb-30">
+                                    <div class="boking-datepicker">
+                                        <input id="timepicker"  placeholder="Time" />
+                                    </div>
+                                </div>
+                                <!-- Single Select Box -->
+                                <div class="single-select-box mb-30">
+                                    <button class="btn select-btn" type="button" onclick="bookTableViaWhatsApp()">Book Now</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Booking Room End-->
+        <!--? Our Services Start -->
+        <div class="our-services section-padding30">
+            <div class="container">
+                <div class="row justify-content-sm-center">
+                    <div class="cl-xl-7 col-lg-8 col-md-10">
+                        <!-- Section Tittle -->
+                        <div class="section-tittle text-center mb-70">
+                            <span>Servicees We Offer</span>
+                            <h2>Our Best Services</h2>
+                        </div> 
+                    </div>
+                </div>
+                <div class="row">
+                    <div class=" col-lg-4 col-md-6 col-sm-6">
+                        <div class="single-services text-center mb-30">
+                            <div class="services-ion">
+                                <span class="flaticon-restaurant"></span>
+                            </div>
+                            <div class="services-cap">
+                                <h5><a href="#">Best Chef</a></h5>
+                                <p> Our experienced chefs prepare every dish with passion, creativity, and the finest ingredients to deliver authentic flavors in every bite.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class=" col-lg-4 col-md-6 col-sm-6">
+                        <div class="single-services active text-center mb-30">
+                            <div class="services-ion">
+                                <span class="flaticon-tools-and-utensils-1"></span>
+                            </div>
+                            <div class="services-cap">
+                                <h5><a href="#">Quality Food</a></h5>
+                                <p> We use only fresh, premium ingredients to create delicious meals that meet the highest standards of taste, quality, and hygiene.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class=" col-lg-4 col-md-6 col-sm-6">
+                        <div class="single-services text-center mb-30">
+                            <div class="services-ion">
+                                <span class="flaticon-restaurant"></span>
+                            </div>
+                            <div class="services-cap">
+                                <h5><a href="#">Perfect Cook</a></h5>
+                                <p>,Every meal is carefully cooked to perfection, ensuring rich flavors, consistent quality, and a memorable dining experience every time.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Our Services End -->
+        <!--? About-3 Start -->
+        <div class="about-area3 pt-180 pb-170 section-bg" data-background="gallery/section_bg03.png">
+            <div class="container">
+                <div class="row justify-content-end">
+                    <div class="col-xl-6 col-lg-6 col-md-9 col-sm-11">
+                        <!-- Section Tittle -->
+                        <div class="section-tittle section-tittle2 mb-40">
+                            <span>About Our Restaurant</span>
+                            <h2>Every Meal Is Crafted with Passion</h2>
+                            <p>We believe that great food creates unforgettable memories. From carefully selected fresh ingredients to expertly prepared dishes, every meal is made with passion, quality, and authentic flavors to delight every guest.</p>
+                        </div> 
+                        <!--Hero form -->
+                        <form id="subscribe-form" onsubmit="subscribeViaWhatsApp(event)" class="search-box">
+                            <div class="input-form">
+                                <input id="subscribe-number" type="text" placeholder="karak station" aria-label="karak station">
+                            </div>
+                            <div class="search-form">
+                                <button type="submit">Subscribe</button>
+                            </div>
+                        </form>
+                        <script>
+                            function subscribeViaWhatsApp(e){
+                                e.preventDefault();
+                                try{
+                                    var num = document.getElementById('subscribe-number').value.trim();
+                                    var msg = 'Hello! I would like to subscribe to Karak Station updates.' + (num ? ' My contact number: ' + num : '');
+                                    var wa = '97477821400';
+                                    var url = 'https://wa.me/' + wa + '?text=' + encodeURIComponent(msg);
+                                    window.open(url, '_blank');
+                                }catch(err){
+                                    console.error('Subscribe via WhatsApp failed', err);
+                                }
+                                return false;
+                            }
+                        </script>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- About-3 End -->
+        <!--? Blog Area Start -->
+        <section class="blogs-area section-padding30">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-lg-6">
+                        <!-- Section Tittle -->
+                        <div class="section-tittle text-center mb-70">
+                            <span>Our New Blog News</span>
+                            <h2>Our Recnet News</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="row" id="home-recent-posts">
+                    <!-- Recent blog posts from admin/blog.html will be injected here -->
+                </div>
+                <script>
+                    (function(){
+                        const blogPostsKey = 'blogPosts';
+
+                        // Read blog posts from admin-managed storage. Do not write
+                        // default sample posts here — the admin manager is the source
+                        // of truth and will populate `blogPosts` as needed.
+                        function getStoredBlogData(){
+                            try {
+                                const posts = JSON.parse(localStorage.getItem(blogPostsKey) || '[]');
+                                return Array.isArray(posts) ? posts : [];
+                            } catch (e) {
+                                return [];
+                            }
+                        }
+                        function formatDate(dateStr){
+                            try{
+                                const d = new Date(dateStr);
+                                const day = d.getDate();
+                                const month = d.toLocaleString('en-US',{ month:'short' });
+                                const year = d.getFullYear();
+                                return `${day} ${month}, ${year}`;
+                            }catch(e){ return dateStr || ''; }
+                        }
+                        function createHomeCard(post){
+                            const img = post.image || 'gallery/blog1.png';
+                            const date = formatDate(post.date || new Date());
+                            const title = post.title || 'Untitled';
+                            const link = post.link || 'blog.html';
+                            return `
+                                <div class="col-lg-4 col-md-6">
+                                    <div class="single-blogs mb-100">
+                                        <div class="blog-img">
+                                            <img src="${img}" alt="${title}">
+                                        </div>
+                                        <div class="blog-cap">
+                                            <span class="color1">${date}</span>
+                                            <h4><a href="${link}">${title}</a></h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                        function renderHomeRecent(){
+                            const container = document.getElementById('home-recent-posts');
+                            if(!container) return;
+                            const posts = getStoredBlogData().slice().sort((a,b)=> new Date(b.date)-new Date(a.date));
+                            if(posts.length === 0){
+                                container.innerHTML = '<p class="text-muted">No recent posts yet.</p>';
+                                return;
+                            }
+                            const recent = posts.slice(0,3);
+                            container.innerHTML = recent.map(createHomeCard).join('');
+                        }
+                        document.addEventListener('DOMContentLoaded', renderHomeRecent);
+                        // also re-render when storage changes (if admin page in another tab updates)
+                        window.addEventListener('storage', function(e){ if(e.key === 'blogPosts') renderHomeRecent(); });
+                    })();
+                </script>
+            </div>
+        </section>
+        <!-- Blog Area End -->
+    </main>
+    <footer aria-label="Karak Station site footer with contact information">
+        <!--? Footer Start-->
+        <div class="footer-area section-bg" data-background="gallery/section_bg02.png">
+            <div class="container">
+                <div class="footer-top footer-padding">
+                    <div class="row d-flex justify-content-between">
+                        <div class="col-xl-4 col-lg-4 col-md-5 col-sm-8">
+                            <div class="single-footer-caption mb-50">
+                                <!-- logo -->
+                                <div class="footer-logo">
+                                    <a href="index.html"><img src="logo/karak_station_logo.png" alt="Karak Station logo"></a>
+                                </div>
+                                <div class="footer-contact" aria-labelledby="footer-contact-label">
+                                    <h4 id="footer-contact-label">KARAK STATION</h4>
+                                    <p><strong>Restaurant &amp; Cafeteria / مطعم &amp; كافتيريا</strong></p>
+                                    <p>24 HOURS OPEN / مفتوح 24 ساعة</p>
+                                    <p>FREE DELIVERY / توصيل مجاني</p>
+                                    <p>Umm Al Amad, Qatar / أم العماد, قطر</p>
+                                    <p><a href="tel:+97477821400">+974 77821400</a></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-2 col-lg-2 col-md-5 col-sm-6">
+                            <div class="single-footer-caption mb-50">
+                                <div class="footer-tittle">
+                                    <h4>Navigation</h4>
+                                    <ul aria-label="Footer Navigation">
+                                        <li><a href="index.html" aria-label="Navigate to Home page">Home</a></li>
+                                        <li><a href="blog.html" aria-label="Navigate to Blog page">Events</a></li>
+                                        <li><a href="index.html#testimonial" aria-label="Navigate to Testimonial section">Testimonial</a></li>
+                                        <li><a href="menu.html" aria-label="Navigate to Menu page">Categories</a></li>
+                                        <li><a href="contact.html" aria-label="Navigate to Contact page">Contacts</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Instagram -->
+                        <div class="col-xl-4 col-lg-4 col-md-5 col-sm-7">
+                            <div class="single-footer-caption mb-50">
+                                <div class="footer-tittle">
+                                    <h4>Instagram Feed</h4>
+                                </div>
+                                <div class="instagram-gellay">
+                                    <ul class="insta-feed">
+                                        <li><a href="#"><img src="gallery/instagram1.png" alt=""></a></li>
+                                        <li><a href="#"><img src="gallery/instagram2.png" alt=""></a></li>
+                                        <li><a href="#"><img src="gallery/instagram3.png" alt=""></a></li>
+                                        <li><a href="#"><img src="gallery/instagram4.png" alt=""></a></li>
+                                        <li><a href="#"><img src="gallery/instagram5.png" alt=""></a></li>
+                                        <li><a href="#"><img src="gallery/instagram6.png" alt=""></a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="footer-bottom">
+                    <div class="row d-flex justify-content-between align-items-center">
+                        <div class="col-xl-9 col-lg-8">
+                            <div class="footer-copy-right">
+                                <p><!-- Link back to Beeone Digital can't be removed. Template is licensed under CC BY 3.0. -->
+  Copyright &copy;<script>document.write(new Date().getFullYear());</script> All rights reserved | made with <i class="fa fa-heart" aria-hidden="true"></i> by Beeone Digital
+  <!-- Link back to Beeone Digital can't be removed. Template is licensed under CC BY 3.0. --></p>
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-lg-4">
+                            <!-- Footer Social -->
+                            <div class="footer-social f-right">
+                                <span>Follow Us</span>
+                                <a href="https://www.facebook.com/profile.php?id=61590693355336" target="_blank" rel="noopener"><i class="fab fa-facebook-f"></i></a>
+                                <a href="https://www.instagram.com/karakstationqt/" target="_blank" rel="noopener"><i class="fab fa-instagram"></i></a>
+                                <a href="admin/index.html" class="border-btn header-btn ms-3">Admin</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Footer End-->
+    </footer>
+    <!-- Scroll Up -->
+    <div id="back-top" >
+        <a title="Go to Top" href="#"> <i class="fas fa-level-up-alt"></i></a>
+    </div>
+
+    <!-- JS here -->
+
+    <script src="./js/vendor/modernizr-3.5.0.min.js"></script>
+    <!-- Jquery, Popper, Bootstrap -->
+    <script src="./js/vendor/jquery-1.12.4.min.js"></script>
+    <script src="./js/popper.min.js"></script>
+    <script src="./js/bootstrap.min.js"></script>
+    <!-- Jquery Mobile Menu -->
+    <script src="./js/jquery.slicknav.min.js"></script>
+
+    <!-- Jquery Slick , Owl-Carousel Plugins -->
+    <script src="./js/owl.carousel.min.js"></script>
+    <script src="./js/slick.min.js"></script>
+    <!-- One Page, Animated-HeadLin -->
+    <script src="./js/wow.min.js"></script>
+    <script src="./js/animated.headline.js"></script>
+    <script src="./js/jquery.magnific-popup.js"></script>
+
+    <!-- Date Picker -->
+    <script src="./js/gijgo.min.js"></script>
+    <!-- Nice-select, sticky -->
+    <script src="./js/jquery.nice-select.min.js"></script>
+    <script src="./js/jquery.sticky.js"></script>
+    
+    <!-- contact js -->
+    <script src="./js/contact.js"></script>
+    <script src="./js/jquery.form.js"></script>
+    <script src="./js/jquery.validate.min.js"></script>
+    <script src="./js/mail-script.js"></script>
+    <script src="./js/jquery.ajaxchimp.min.js"></script>
+    
+    <!-- Jquery Plugins, main Jquery -->	
+    <script src="./js/plugins.js"></script>
+    <script src="./js/main.js"></script>
+    
+    <!-- Water Bubble Animation -->
+    <script src="./js/water-animation.js"></script>
+    
+    <script>
+        // Initialize WOW.js for scroll animations
+        new WOW().init();
+    </script>
+    
+    <script>
+        function getSpecialPosterFoods() {
+            const stored = JSON.parse(localStorage.getItem('specialPosterFoods') || 'null');
+            if (Array.isArray(stored)) {
+                return stored.filter(item => item.status !== 'unavailable');
+            }
+            return [];
+        }
+
+        function normalizeSpecialImage(image) {
+            if (!image || !image.trim()) {
+                return 'menu/page-thumbs/page2_Im0.jpg';
+            }
+            const trimmed = image.trim();
+            if (trimmed.startsWith('special/')) {
+                return 'menu/page-thumbs/page2_Im0.jpg';
+            }
+            return trimmed;
+        }
+
+        function renderSpecialHomeFoods() {
+            const foods = getSpecialPosterFoods();
+            if (!foods.length) {
+                $('.special-carousel').html('');
+                $('.special-foods-carousel').hide();
+                return foods;
+            }
+            const html = foods.map(food => {
+                const imageUrl = food.imageData || normalizeSpecialImage(food.image);
+                return `
+                    <div class="special-food-item">
+                        <div class="food-image" style="background-image: url(${imageUrl});"></div>
+                        <div class="food-info">
+                            <h4>${food.name}</h4>
+                            ${food.arabicName ? `<p class="arabic-name">${food.arabicName}</p>` : ''}
+                            <p>${food.desc || ''}</p>
+                            <p class="food-price">${food.price ? 'Price: ' + food.price : ''}</p>
+                            <button class="btn order-btn" onclick="orderSpecialFood('${food.name}', '${imageUrl}')">Order Now</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            $('.special-carousel').html(html);
+            $('.special-foods-carousel').show();
+            return foods;
+        }
+
+        const specialFoods = renderSpecialHomeFoods();
+        if (specialFoods.length) {
+            $('.special-carousel').owlCarousel({
+                loop: true,
+                margin: 10,
+                nav: true,
+                dots: true,
+                autoplay: true,
+                autoplayTimeout: 5000,
+                responsive: {
+                    0: {
+                        items: 1
+                    },
+                    600: {
+                        items: 2
+                    },
+                    1000: {
+                        items: 3
+                    }
+                }
+            });
+        }
+        
+        function getWhatsAppOrderSettings() {
+            try {
+                const stored = localStorage.getItem('karakWhatsAppOrderSettings');
+                if (stored) {
+                    const parsed = JSON.parse(stored);
+                    return {
+                        countryCode: parsed.countryCode || '+974',
+                        phoneNumber: parsed.phoneNumber || '77821400'
+                    };
+                }
+            } catch (e) {}
+            return {
+                countryCode: '+974',
+                phoneNumber: '77821400'
+            };
+        }
+
+        function getWhatsAppPhoneNumber() {
+            const settings = getWhatsAppOrderSettings();
+            const normalizedCode = String(settings.countryCode || '').trim().replace(/\D/g, '');
+            const normalizedNumber = String(settings.phoneNumber || '').trim().replace(/\D/g, '');
+            if (!normalizedCode && !normalizedNumber) {
+                return '';
+            }
+            return normalizedCode ? `+${normalizedCode}${normalizedNumber}` : `+${normalizedNumber}`;
+        }
+
+        function getWhatsAppBookingSettings() {
+            try {
+                const stored = localStorage.getItem('karakWhatsAppBookingSettings');
+                if (stored) {
+                    const parsed = JSON.parse(stored);
+                    return {
+                        countryCode: parsed.countryCode || '+974',
+                        phoneNumber: parsed.phoneNumber || '77821400'
+                    };
+                }
+            } catch (e) {}
+            return {
+                countryCode: '+974',
+                phoneNumber: '77821400'
+            };
+        }
+
+        function getWhatsAppBookingPhoneNumber() {
+            const settings = getWhatsAppBookingSettings();
+            const normalizedCode = String(settings.countryCode || '').trim().replace(/\D/g, '');
+            const normalizedNumber = String(settings.phoneNumber || '').trim().replace(/\D/g, '');
+            if (!normalizedCode && !normalizedNumber) {
+                return '';
+            }
+            return normalizedCode ? `+${normalizedCode}${normalizedNumber}` : `+${normalizedNumber}`;
+        }
+
+        function incrementWhatsAppOrderCount() {
+            const currentOrderCount = parseInt(localStorage.getItem('whatsappOrderCount') || '0', 10) || 0;
+            localStorage.setItem('whatsappOrderCount', String(currentOrderCount + 1));
+        }
+
+        function saveSubmittedOrder(source, customerCountryCode, customerPhoneNumber, orderDetails, total, customerName = '') {
+            const orders = JSON.parse(localStorage.getItem('karakSubmittedOrders') || '[]');
+            orders.unshift({
+                id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
+                source: source || 'special-poster',
+                device: window.matchMedia('(max-width: 991px)').matches ? 'mobile' : 'desktop',
+                customerCountryCode: customerCountryCode || '+974',
+                customerPhoneNumber: customerPhoneNumber || '',
+                customerName: customerName || '',
+                orderDetails: orderDetails || '',
+                total: total || '',
+                status: 'new',
+                createdAt: new Date().toISOString()
+            });
+            localStorage.setItem('karakSubmittedOrders', JSON.stringify(orders));
+        }
+
+        function incrementSpecialPosterOrderCount() {
+            const currentPosterOrderCount = parseInt(localStorage.getItem('specialPosterWhatsAppOrderCount') || '0', 10) || 0;
+            localStorage.setItem('specialPosterWhatsAppOrderCount', String(currentPosterOrderCount + 1));
+        }
+
+        // Order Special Food via WhatsApp
+        function orderSpecialFood(foodName, imageUrl) {
+            const normalizedCountryCode = '';
+            const normalizedPhoneNumber = '';
+            const whatsappNumber = getWhatsAppPhoneNumber();
+            const message = 'Hello! I would like to order the following special food:\n\n' +
+                            'Food: ' + foodName + '\n' +
+                            'Image: ' + imageUrl + '\n\n' +
+                            'Please provide details and pricing. Thank you!';
+            
+            const saved = await saveSubmittedOrder('special-poster', normalizedCountryCode, normalizedPhoneNumber, 'Food: ' + foodName + '\nImage: ' + imageUrl, '', customerName, [{ name: foodName, image: imageUrl, quantity: 1 }]);
+            if (!saved) return;
+
+            const encodedMessage = encodeURIComponent(message);
+            const phoneNumber = whatsappNumber.replace(/\D/g, '');
+            const whatsappUrl = 'https://wa.me/' + phoneNumber + '?text=' + encodedMessage;
+            
+            incrementWhatsAppOrderCount();
+            incrementSpecialPosterOrderCount();
+            window.open(whatsappUrl, '_blank');
+        }
+        
+        // Initialize datepickers
+        $('#datepicker1').datepicker({
+            uiLibrary: 'bootstrap4',
+            format: 'mm/dd/yyyy'
+        });
+        
+        $('#timepicker').timepicker({
+            uiLibrary: 'bootstrap4',
+            format: 'hh:mm A'
+        });
+        
+        function bookTableViaWhatsApp() {
+            const person = document.getElementById('select1').value;
+            const date = document.getElementById('datepicker1').value;
+            const time = document.getElementById('timepicker').value;
+            
+            if (!person || !date || !time) {
+                alert('Please fill in all booking details (Person, Date, and Time)');
+                return;
+            }
+            
+            const whatsappNumber = getWhatsAppBookingPhoneNumber();
+            const message = 'Hello! I would like to book a table:\n\n' +
+                            'Number of Persons: ' + person + '\n' +
+                            'Date: ' + date + '\n' +
+                            'Time: ' + time + '\n\n' +
+                            'Please confirm the booking. Thank you!';
+            
+            const encodedMessage = encodeURIComponent(message);
+            const phoneNumber = whatsappNumber.replace(/\D/g, '');
+            const whatsappUrl = 'https://wa.me/' + phoneNumber + '?text=' + encodedMessage;
+            
+            window.open(whatsappUrl, '_blank');
+        }
+    </script>
+    
+    </body>
+</html>
+
+
+
+
