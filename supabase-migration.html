@@ -2,7 +2,7 @@
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Karak Station - Supabase Migration</title>
 <script src="js/supabase-config.js"></script><script src="js/supabase-client.js"></script>
 <style>body{font-family:Arial,sans-serif;max-width:850px;margin:50px auto;padding:20px}.card{border:1px solid #ddd;border-radius:12px;padding:24px;margin:16px 0}button{padding:12px 18px;border:0;border-radius:8px;cursor:pointer}pre{background:#f5f5f5;padding:15px;overflow:auto}</style></head>
-<body><h1>Karak Station → Supabase</h1><div class="card"><p>This one-time legacy migration tool is retained only for old browser data. The live Karak Station application now uses Supabase tables directly and does not use app_store/localStorage as its data source.</p><button id="migrate">Migrate local data</button></div><div id="status" class="card">Waiting…</div>
+<body><h1>Karak Station → Supabase</h1><div class="card"><p>This one-time tool uploads existing browser localStorage data to the Supabase <code>app_store</code> table.</p><button id="migrate">Migrate local data</button></div><div id="status" class="card">Waiting…</div>
 <script>
 const keys=['adminMenu','adminCategories','adminFoods','blogCategories','blogPosts','specialPosterFoods','karakSubmittedOrders','whatsappOrderCount','specialPosterWhatsAppOrderCount','karakWhatsAppOrderSettings','karakWhatsAppBookingSettings','manageOrdersShopWhatsApp','whatsappPendingUpdates'];
 const status=document.getElementById('status');

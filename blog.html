@@ -370,6 +370,9 @@
     <script src="./js/plugins.js"></script>
     <script src="./js/main.js"></script>
     <script src="./js/site-settings.js"></script>
+    <script src="./js/supabase-config.js"></script>
+    <script src="./js/supabase-client.js"></script>
+    <script src="./js/karak-data.js"></script>
     
     <script>
         // Initialize WOW.js for scroll animations
@@ -417,26 +420,18 @@
             }
         ];
 
-        function getStoredBlogData() {
-            let storedCategories = [];
-            let storedPosts = [];
-
+        let cachedBlogData = { categories: [], posts: [] };
+        function getStoredBlogData() { return cachedBlogData; }
+        async function loadBlogFromSupabase() {
             try {
-                storedCategories = JSON.parse(localStorage.getItem(blogCategoriesKey) || '[]');
-                storedPosts = JSON.parse(localStorage.getItem(blogPostsKey) || '[]');
+                const data = await window.KarakDB.getBlog();
+                cachedBlogData = { categories: data.categories || [], posts: (data.posts || []).map(normalizePostData) };
+                refreshBlogPage();
             } catch (error) {
-                storedCategories = [];
-                storedPosts = [];
+                console.error('Could not load public blog from Supabase:', error);
+                cachedBlogData = { categories: defaultCategories.slice(), posts: defaultPosts.slice().map(normalizePostData) };
+                refreshBlogPage();
             }
-
-            const categories = Array.isArray(storedCategories) && storedCategories.length > 0 ? storedCategories : defaultCategories.slice();
-            const posts = Array.isArray(storedPosts) && storedPosts.length > 0 ? storedPosts : defaultPosts.slice();
-
-            if ((!Array.isArray(storedCategories) || storedCategories.length === 0) || (!Array.isArray(storedPosts) || storedPosts.length === 0)) {
-                localStorage.setItem(blogCategoriesKey, JSON.stringify(categories));
-                localStorage.setItem(blogPostsKey, JSON.stringify(posts));
-            }
-            return { categories, posts };
         }
 
         function createCategoryItem(category, count) {
@@ -540,8 +535,10 @@
             }
         }
 
-        function saveBlogPosts(posts) {
-            localStorage.setItem(blogPostsKey, JSON.stringify(posts));
+        async function saveBlogPosts(posts) {
+            cachedBlogData.posts = posts.map(normalizePostData);
+            try { await window.KarakDB.saveBlog(cachedBlogData.categories, cachedBlogData.posts); } catch (e) { console.error(e); alert('Could not save blog update.'); return; }
+            refreshBlogPage();
         }
 
         function updatePostLikes(postId) {
@@ -550,7 +547,6 @@
             if (!post) return;
             post.likes = Number(post.likes || 0) + 1;
             saveBlogPosts(data.posts);
-            refreshBlogPage();
         }
 
         function addCommentToPost(postId, commenterName, commentText) {
@@ -566,7 +562,6 @@
             });
             post.comments = post.commentList.length;
             saveBlogPosts(data.posts);
-            refreshBlogPage();
         }
 
         function renderGlobalCommentsForPost(postId) {
@@ -653,6 +648,7 @@
         });
 
         refreshBlogPage();
+        loadBlogFromSupabase();
     </script>
     <script src="./js/water-animation.js"></script>
     

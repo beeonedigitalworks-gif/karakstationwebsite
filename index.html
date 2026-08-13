@@ -694,61 +694,23 @@
                 </div>
                 <script>
                     (function(){
-                        const blogPostsKey = 'blogPosts';
-
-                        // Read blog posts from admin-managed storage. Do not write
-                        // default sample posts here — the admin manager is the source
-                        // of truth and will populate `blogPosts` as needed.
-                        function getStoredBlogData(){
-                            try {
-                                const posts = JSON.parse(localStorage.getItem(blogPostsKey) || '[]');
-                                return Array.isArray(posts) ? posts : [];
-                            } catch (e) {
-                                return [];
-                            }
-                        }
-                        function formatDate(dateStr){
-                            try{
-                                const d = new Date(dateStr);
-                                const day = d.getDate();
-                                const month = d.toLocaleString('en-US',{ month:'short' });
-                                const year = d.getFullYear();
-                                return `${day} ${month}, ${year}`;
-                            }catch(e){ return dateStr || ''; }
-                        }
-                        function createHomeCard(post){
-                            const img = post.image || 'gallery/blog1.png';
-                            const date = formatDate(post.date || new Date());
-                            const title = post.title || 'Untitled';
-                            const link = post.link || 'blog.html';
-                            return `
-                                <div class="col-lg-4 col-md-6">
-                                    <div class="single-blogs mb-100">
-                                        <div class="blog-img">
-                                            <img src="${img}" alt="${title}">
-                                        </div>
-                                        <div class="blog-cap">
-                                            <span class="color1">${date}</span>
-                                            <h4><a href="${link}">${title}</a></h4>
-                                        </div>
-                                    </div>
-                                </div>
-                            `;
-                        }
-                        function renderHomeRecent(){
+                        async function renderHomeRecent(){
                             const container = document.getElementById('home-recent-posts');
                             if(!container) return;
-                            const posts = getStoredBlogData().slice().sort((a,b)=> new Date(b.date)-new Date(a.date));
-                            if(posts.length === 0){
-                                container.innerHTML = '<p class="text-muted">No recent posts yet.</p>';
-                                return;
-                            }
-                            const recent = posts.slice(0,3);
-                            container.innerHTML = recent.map(createHomeCard).join('');
+                            try {
+                                const data = await window.KarakDB.getBlog();
+                                const posts = (data.posts || []).slice().sort((a,b)=> new Date(b.date)-new Date(a.date));
+                                if(!posts.length){ container.innerHTML = '<p class="text-muted">No recent posts yet.</p>'; return; }
+                                const recent = posts.slice(0,3);
+                                container.innerHTML = recent.map(post => {
+                                    const img = post.imageUrl || post.image || 'gallery/blog1.png';
+                                    const d = new Date(post.date || Date.now());
+                                    const date = `${d.getDate()} ${d.toLocaleString('en-US',{month:'short'})}, ${d.getFullYear()}`;
+                                    return `<div class="col-lg-4 col-md-6"><div class="single-blogs mb-100"><div class="blog-img"><img src="${img}" alt="${post.title || ''}"></div><div class="blog-cap"><span class="color1">${date}</span><h4><a href="${post.link || 'blog.html'}">${post.title || 'Untitled'}</a></h4></div></div></div>`;
+                                }).join('');
+                            } catch(e) { console.error('Home blog load failed',e); }
                         }
                         document.addEventListener('DOMContentLoaded', renderHomeRecent);
-                        // also re-render when storage changes (if admin page in another tab updates)
-                        window.addEventListener('storage', function(e){ if(e.key === 'blogPosts') renderHomeRecent(); });
                     })();
                 </script>
             </div>
@@ -875,6 +837,9 @@
     <!-- Jquery Plugins, main Jquery -->	
     <script src="./js/plugins.js"></script>
     <script src="./js/main.js"></script>
+    <script src="./js/supabase-config.js"></script>
+    <script src="./js/supabase-client.js"></script>
+    <script src="./js/karak-data.js"></script>
     
     <!-- Water Bubble Animation -->
     <script src="./js/water-animation.js"></script>
@@ -885,12 +850,15 @@
     </script>
     
     <script>
-        function getSpecialPosterFoods() {
-            const stored = JSON.parse(localStorage.getItem('specialPosterFoods') || 'null');
-            if (Array.isArray(stored)) {
-                return stored.filter(item => item.status !== 'unavailable');
+        let specialPosterFoodsCache = [];
+        async function getSpecialPosterFoods() {
+            try {
+                specialPosterFoodsCache = await window.KarakDB.getSpecialFoods();
+            } catch(e) {
+                console.error('Special poster load failed', e);
             }
-            return [];
+            specialPosterFoodsCache = specialPosterFoodsCache.filter(item => item.status !== 'unavailable');
+            return specialPosterFoodsCache;
         }
 
         function normalizeSpecialImage(image) {
@@ -904,8 +872,8 @@
             return trimmed;
         }
 
-        function renderSpecialHomeFoods() {
-            const foods = getSpecialPosterFoods();
+        async function renderSpecialHomeFoods() {
+            const foods = await getSpecialPosterFoods();
             if (!foods.length) {
                 $('.special-carousel').html('');
                 $('.special-foods-carousel').hide();
@@ -921,7 +889,7 @@
                             ${food.arabicName ? `<p class="arabic-name">${food.arabicName}</p>` : ''}
                             <p>${food.desc || ''}</p>
                             <p class="food-price">${food.price ? 'Price: ' + food.price : ''}</p>
-                            <button class="btn order-btn" onclick="orderSpecialFood('${food.name}', '${imageUrl}')">Order Now</button>
+                            <button type="button" class="btn order-btn special-order-trigger" data-special-index="${foods.indexOf(food)}">Order Now</button>
                         </div>
                     </div>
                 `;
@@ -931,29 +899,131 @@
             return foods;
         }
 
-        const specialFoods = renderSpecialHomeFoods();
-        if (specialFoods.length) {
-            $('.special-carousel').owlCarousel({
-                loop: true,
-                margin: 10,
-                nav: true,
-                dots: true,
-                autoplay: true,
-                autoplayTimeout: 5000,
-                responsive: {
-                    0: {
-                        items: 1
-                    },
-                    600: {
-                        items: 2
-                    },
-                    1000: {
-                        items: 3
-                    }
+        renderSpecialHomeFoods().then(specialFoods => {
+            if (specialFoods.length) {
+                $('.special-carousel').owlCarousel({
+                    loop: true,
+                    margin: 10,
+                    nav: true,
+                    dots: true,
+                    autoplay: true,
+                    autoplayTimeout: 5000,
+                    responsive: { 0: { items: 1 }, 600: { items: 2 }, 1000: { items: 3 } }
+                });
+            }
+        });
+        
+        // Special Poster customer order modal
+        function ensureSpecialOrderModal() {
+            if (document.getElementById('specialOrderModal')) return;
+            const modal = document.createElement('div');
+            modal.id = 'specialOrderModal';
+            modal.innerHTML = `
+                <div class="special-order-backdrop"></div>
+                <div class="special-order-dialog" role="dialog" aria-modal="true" aria-labelledby="specialOrderTitle">
+                    <button type="button" class="special-order-close" aria-label="Close">&times;</button>
+                    <h3 id="specialOrderTitle">Order Special Food</h3>
+                    <p id="specialOrderFoodName" class="mb-3"></p>
+                    <form id="specialOrderForm">
+                        <div class="form-group">
+                            <label for="specialCustomerName">Customer Name</label>
+                            <input id="specialCustomerName" class="form-control" type="text" maxlength="80" required placeholder="Enter your name">
+                        </div>
+                        <div class="form-group">
+                            <label for="specialCustomerPhone">WhatsApp Number</label>
+                            <div style="display:flex;gap:8px;align-items:center;">
+                                <span class="form-control" style="max-width:78px;background:#f5f5f5;">+974</span>
+                                <input id="specialCustomerPhone" class="form-control" type="tel" inputmode="numeric" maxlength="8" pattern="[0-9]{8}" required placeholder="8 digit number">
+                            </div>
+                            <small class="form-text text-muted">Qatar number: 8 digits</small>
+                        </div>
+                        <button id="specialOrderSubmit" type="submit" class="btn btn-primary btn-block">Continue to WhatsApp</button>
+                    </form>
+                </div>`;
+            const style = document.createElement('style');
+            style.textContent = `
+                #specialOrderModal{position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;padding:20px}
+                #specialOrderModal.show{display:flex}.special-order-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.65)}
+                .special-order-dialog{position:relative;width:100%;max-width:430px;background:#fff;border-radius:12px;padding:25px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+                .special-order-close{position:absolute;right:12px;top:8px;border:0;background:transparent;font-size:30px;line-height:1;cursor:pointer}
+                .special-order-dialog h3{margin:0 30px 8px 0}.special-order-dialog label{font-weight:600}
+            `;
+            document.head.appendChild(style);
+            document.body.appendChild(modal);
+            const close = () => modal.classList.remove('show');
+            modal.querySelector('.special-order-backdrop').addEventListener('click', close);
+            modal.querySelector('.special-order-close').addEventListener('click', close);
+            modal.querySelector('#specialOrderForm').addEventListener('submit', async function(e){
+                e.preventDefault();
+                const index = Number(modal.dataset.foodIndex);
+                const food = specialPosterFoodsCache[index];
+                if (!food) { alert('Special food could not be found. Please refresh the page.'); return; }
+                const name = document.getElementById('specialCustomerName').value.trim();
+                const phone = document.getElementById('specialCustomerPhone').value.replace(/\D/g,'');
+                if (!name) { alert('Please enter your name.'); return; }
+                if (!/^\d{8}$/.test(phone)) { alert('Please enter a valid Qatar WhatsApp number with 8 digits.'); return; }
+                const submit = document.getElementById('specialOrderSubmit');
+                submit.disabled = true; submit.textContent = 'Saving order...';
+                const imageUrl = food.imageData || normalizeSpecialImage(food.image);
+                const message = 'Hello! I would like to order the following special food:\n\n' +
+                    'Food: ' + food.name + '\n' +
+                    'Customer Name: ' + name + '\n' +
+                    'WhatsApp: +974 ' + phone + '\n' +
+                    'Price: ' + (food.price || 'Please confirm') + '\n\n' +
+                    'Please confirm availability and order details. Thank you!';
+                const whatsappNumber = getWhatsAppPhoneNumber();
+                const restaurantPhone = whatsappNumber.replace(/\D/g,'');
+                if (!restaurantPhone) {
+                    alert('Restaurant WhatsApp number is not configured.');
+                    submit.disabled = false; submit.textContent = 'Continue to WhatsApp';
+                    return;
+                }
+
+                // Open WhatsApp immediately from the user's click. Do not wait for Supabase,
+                // otherwise GitHub Pages/browser popup protection can delay or block WhatsApp.
+                const whatsappUrl = 'https://wa.me/' + restaurantPhone + '?text=' + encodeURIComponent(message);
+                const whatsappWindow = window.open(whatsappUrl, '_blank');
+                if (!whatsappWindow) window.location.href = whatsappUrl;
+                incrementWhatsAppOrderCount(); incrementSpecialPosterOrderCount();
+                close();
+                submit.disabled = false; submit.textContent = 'Continue to WhatsApp';
+
+                // Save the order in Supabase in the background. WhatsApp does not wait for this.
+                if (window.KarakDB && typeof window.KarakDB.createOrder === 'function') {
+                    window.KarakDB.createOrder({
+                        source:'special-poster', specialPoster:true, orderType:'whatsapp',
+                        customerCountryCode:'+974', customerPhoneNumber:phone, customerName:name,
+                        items:[{name:food.name, image:imageUrl, price:food.price || ''}],
+                        total:food.price || '', message, status:'pending'
+                    }).then(() => {
+                        console.log('Special poster order saved to Supabase.');
+                    }).catch(error => {
+                        console.error('WhatsApp opened, but special poster order could not be saved to Supabase:', error);
+                    });
+                } else {
+                    console.error('WhatsApp opened, but Supabase order service is not ready.');
                 }
             });
         }
-        
+
+        function openSpecialOrderModal(index) {
+            ensureSpecialOrderModal();
+            const food = specialPosterFoodsCache[Number(index)];
+            if (!food) return;
+            const modal = document.getElementById('specialOrderModal');
+            modal.dataset.foodIndex = String(index);
+            document.getElementById('specialOrderFoodName').textContent = food.name + (food.price ? ' — ' + food.price : '');
+            document.getElementById('specialCustomerName').value = '';
+            document.getElementById('specialCustomerPhone').value = '';
+            modal.classList.add('show');
+            setTimeout(() => document.getElementById('specialCustomerName').focus(), 50);
+        }
+
+        document.addEventListener('click', function(e) {
+            const button = e.target.closest('.special-order-trigger');
+            if (button) openSpecialOrderModal(button.dataset.specialIndex);
+        });
+
         function getWhatsAppOrderSettings() {
             try {
                 const stored = localStorage.getItem('karakWhatsAppOrderSettings');
@@ -1035,28 +1105,6 @@
             localStorage.setItem('specialPosterWhatsAppOrderCount', String(currentPosterOrderCount + 1));
         }
 
-        // Order Special Food via WhatsApp
-        function orderSpecialFood(foodName, imageUrl) {
-            const normalizedCountryCode = '';
-            const normalizedPhoneNumber = '';
-            const whatsappNumber = getWhatsAppPhoneNumber();
-            const message = 'Hello! I would like to order the following special food:\n\n' +
-                            'Food: ' + foodName + '\n' +
-                            'Image: ' + imageUrl + '\n\n' +
-                            'Please provide details and pricing. Thank you!';
-            
-            const saved = await saveSubmittedOrder('special-poster', normalizedCountryCode, normalizedPhoneNumber, 'Food: ' + foodName + '\nImage: ' + imageUrl, '', customerName, [{ name: foodName, image: imageUrl, quantity: 1 }]);
-            if (!saved) return;
-
-            const encodedMessage = encodeURIComponent(message);
-            const phoneNumber = whatsappNumber.replace(/\D/g, '');
-            const whatsappUrl = 'https://wa.me/' + phoneNumber + '?text=' + encodedMessage;
-            
-            incrementWhatsAppOrderCount();
-            incrementSpecialPosterOrderCount();
-            window.open(whatsappUrl, '_blank');
-        }
-        
         // Initialize datepickers
         $('#datepicker1').datepicker({
             uiLibrary: 'bootstrap4',
